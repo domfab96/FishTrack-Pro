@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FishTrack Pro — Nigeria's Smart Fish Farm Manager</title>
+<meta name="description" content="The complete farm management platform for Nigerian catfish farmers. Track ponds, harvests, sales, inventory and grow your farm profitably.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ─── */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --forest:#0D3320;
+  --forest-mid:#1B5C35;
+  --leaf:#2E8B57;
+  --mint:#52C07A;
+  --lime:#A8E063;
+  --cream:#F8F4EC;
+  --warm:#EDE8DC;
+  --sand:#D4C9A8;
+  --gold:#C8A84B;
+  --tx:#1A1209;
+  --tx2:#4A4030;
+  --tx3:#8C7D65;
+  --white:#FFFFFF;
+  --r:16px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--tx);overflow-x:hidden;}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:0 5%;
+  display:flex;align-items:center;justify-content:space-between;
+  height:72px;
+  transition:all .3s;
+}
+nav.scrolled{
+  background:rgba(248,244,236,.95);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(0,0,0,.06);
+  box-shadow:0 2px 20px rgba(0,0,0,.06);
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-icon{width:40px;height:40px;background:var(--forest);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.nav-logo-text{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;transition:color .3s;}
+nav.scrolled .nav-logo-text{color:var(--forest);}
+.nav-links{display:flex;align-items:center;gap:32px;}
+.nav-links a{font-size:15px;color:rgba(255,255,255,.85);text-decoration:none;font-weight:500;transition:color .2s;}
+.nav-links a:hover{color:#fff;}
+nav.scrolled .nav-links a{color:var(--tx2);}
+nav.scrolled .nav-links a:hover{color:var(--forest);}
+.nav-cta{background:var(--lime);color:var(--forest)!important;padding:10px 24px;border-radius:100px;font-weight:700!important;transition:all .2s!important;}
+.nav-cta:hover{background:#bced74!important;transform:translateY(-1px);box-shadow:0 4px 16px rgba(168,224,99,.4);}
+.nav-signin{color:rgba(255,255,255,.85)!important;font-weight:600!important;}
+nav.scrolled .nav-signin{color:var(--forest)!important;}
+nav.scrolled .nav-cta{background:var(--forest)!important;color:#fff!important;}
+nav.scrolled .nav-cta:hover{background:var(--forest-mid)!important;}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;}
+.hamburger span{display:block;width:22px;height:2px;background:var(--forest);border-radius:2px;transition:all .3s;}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;
+  background:var(--forest);
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;
+  padding:120px 5% 80px;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 50%, rgba(46,139,87,.25) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(168,224,99,.08) 0%, transparent 50%),
+    linear-gradient(135deg, #0D3320 0%, #0A2518 100%);
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;width:100%;}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(168,224,99,.12);border:1px solid rgba(168,224,99,.25);
+  padding:6px 16px;border-radius:100px;
+  font-size:12px;font-weight:700;color:var(--lime);
+  letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:28px;
+  animation:fadeUp .6s both;
+}
+.hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--lime);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+
+.hero-title{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(42px,6vw,88px);
+  line-height:1.05;
+  color:var(--white);
+  margin-bottom:24px;
+  animation:fadeUp .6s .1s both;
+}
+.hero-title em{
+  font-style:italic;color:var(--lime);
+  display:block;
+}
+.hero-sub{
+  font-size:clamp(16px,2vw,20px);
+  color:rgba(255,255,255,.65);
+  line-height:1.7;
+  max-width:560px;
+  margin-bottom:40px;
+  animation:fadeUp .6s .2s both;
+}
+.hero-actions{
+  display:flex;flex-wrap:wrap;gap:14px;margin-bottom:64px;
+  animation:fadeUp .6s .3s both;
+}
+.btn-primary{
+  background:var(--lime);color:var(--forest);
+  padding:15px 32px;border-radius:100px;
+  font-size:16px;font-weight:700;
+  text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+  transition:all .25s;border:none;cursor:pointer;
+}
+.btn-primary:hover{background:#bced74;transform:translateY(-2px);box-shadow:0 8px 24px rgba(168,224,99,.4);}
+.btn-ghost{
+  background:rgba(255,255,255,.08);color:var(--white);
+  border:1px solid rgba(255,255,255,.2);
+  padding:15px 32px;border-radius:100px;
+  font-size:16px;font-weight:600;
+  text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+  transition:all .25s;
+}
+.btn-ghost:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);}
+
+.hero-stats{
+  display:flex;flex-wrap:wrap;gap:32px;
+  animation:fadeUp .6s .4s both;
+}
+.hero-stat .num{font-family:'DM Serif Display',serif;font-size:32px;color:var(--white);}
+.hero-stat .label{font-size:13px;color:rgba(255,255,255,.45);margin-top:2px;}
+
+.hero-visual{
+  position:absolute;right:5%;top:50%;transform:translateY(-50%);
+  width:min(480px, 42vw);
+  animation:floatUp .8s .2s both;
+}
+.hero-card{
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:24px;padding:24px;
+  margin-bottom:14px;
+}
+.hero-card:last-child{margin-bottom:0;}
+.hc-label{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.hc-row{display:flex;justify-content:space-between;align-items:center;}
+.hc-pond{font-size:15px;font-weight:600;color:#fff;}
+.hc-chip{background:rgba(82,192,122,.15);border:1px solid rgba(82,192,122,.3);color:var(--mint);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.hc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.hc-stat{background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center;}
+.hc-stat-num{font-size:14px;font-weight:700;color:#fff;}
+.hc-stat-lbl{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-top:2px;}
+.hc-revenue{font-size:28px;font-weight:800;color:var(--mint);font-family:'DM Serif Display',serif;}
+.hc-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatUp{from{opacity:0;transform:translateY(-50%) translateX(40px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
+
+/* ─── LOGOS / TRUST ─── */
+.trust{background:var(--warm);padding:32px 5%;text-align:center;border-bottom:1px solid var(--sand);}
+.trust p{font-size:12px;color:var(--tx3);letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:20px;}
+.trust-logos{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:32px;}
+.trust-logo{font-family:'Space Mono',monospace;font-size:14px;color:var(--tx3);opacity:.6;}
+
+/* ─── SECTION COMMONS ─── */
+section{padding:100px 5%;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--leaf);margin-bottom:12px;}
+.section-title{font-family:'DM Serif Display',serif;font-size:clamp(32px,4vw,52px);line-height:1.15;color:var(--forest);margin-bottom:16px;}
+.section-sub{font-size:17px;color:var(--tx3);line-height:1.7;max-width:560px;}
+
+/* ─── FEATURES ─── */
+.features{background:var(--cream);}
+.features-header{text-align:center;margin-bottom:64px;}
+.features-header .section-sub{margin:0 auto;}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--sand);border-radius:24px;overflow:hidden;}
+.feature-card{
+  background:var(--cream);padding:36px 32px;
+  transition:background .2s;cursor:default;
+}
+.feature-card:hover{background:var(--warm);}
+.feature-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:var(--forest);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:20px;
+}
+.feature-title{font-size:18px;font-weight:700;color:var(--forest);margin-bottom:8px;}
+.feature-desc{font-size:14px;color:var(--tx3);line-height:1.7;}
+
+/* ─── HOW IT WORKS ─── */
+.how{background:var(--forest);padding:100px 5%;}
+.how .section-eyebrow{color:var(--lime);}
+.how .section-title{color:var(--white);}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-top:64px;}
+.step{position:relative;}
+.step::after{
+  content:'';position:absolute;top:28px;left:calc(100% + 16px);
+  width:calc(100% - 32px);height:1px;
+  background:linear-gradient(90deg,rgba(255,255,255,.2),transparent);
+}
+.step:last-child::after{display:none;}
+.step-num{
+  width:56px;height:56px;border-radius:50%;
+  background:rgba(168,224,99,.12);
+  border:1px solid rgba(168,224,99,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:20px;font-weight:700;
+  color:var(--lime);margin-bottom:20px;
+}
+.step-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;}
+.step-desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;}
+
+/* ─── SCREENSHOT / DEMO ─── */
+.demo{background:var(--warm);}
+.demo-inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.demo-screens{position:relative;}
+.demo-screen-main{
+  background:var(--forest);border-radius:20px;
+  overflow:hidden;box-shadow:0 24px 64px rgba(13,51,32,.25);
+  padding:20px;
+}
+.demo-screen-nav{display:flex;gap:6px;margin-bottom:16px;}
+.demo-screen-nav span{width:10px;height:10px;border-radius:50%;}
+.demo-screen-nav span:nth-child(1){background:#FF5F57;}
+.demo-screen-nav span:nth-child(2){background:#FFBD2E;}
+.demo-screen-nav span:nth-child(3){background:#28C840;}
+.demo-ui{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.demo-metric{background:rgba(255,255,255,.06);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.08);}
+.dm-label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;}
+.dm-val{font-size:22px;font-weight:800;color:#fff;margin-top:4px;font-family:'DM Serif Display',serif;}
+.dm-val.green{color:var(--mint);}
+.dm-val.amber{color:#F5A623;}
+.demo-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:8px;overflow:hidden;}
+.demo-bar-fill{height:100%;background:var(--mint);border-radius:2px;}
+
+/* ─── PRICING ─── */
+.pricing{background:var(--cream);}
+.pricing-header{text-align:center;margin-bottom:64px;}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto;}
+.plan-card{
+  background:var(--white);border-radius:24px;padding:36px 32px;
+  border:2px solid var(--sand);
+  transition:all .25s;position:relative;
+}
+.plan-card:hover{border-color:var(--forest);transform:translateY(-4px);box-shadow:0 16px 48px rgba(13,51,32,.12);}
+.plan-card.featured{
+  background:var(--forest);
+  border-color:var(--forest);
+  transform:scale(1.04);
+}
+.plan-card.featured:hover{transform:scale(1.04) translateY(-4px);}
+.plan-badge{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--forest);
+  padding:4px 16px;border-radius:100px;
+  font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+}
+.plan-name{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.plan-card:not(.featured) .plan-name{color:var(--tx3);}
+.plan-card.featured .plan-name{color:rgba(255,255,255,.6);}
+.plan-price{font-family:'DM Serif Display',serif;font-size:44px;line-height:1;margin-bottom:4px;}
+.plan-card:not(.featured) .plan-price{color:var(--forest);}
+.plan-card.featured .plan-price{color:var(--white);}
+.plan-period{font-size:14px;margin-bottom:24px;}
+.plan-card:not(.featured) .plan-period{color:var(--tx3);}
+.plan-card.featured .plan-period{color:rgba(255,255,255,.5);}
+.plan-divider{height:1px;background:var(--sand);margin-bottom:24px;}
+.plan-card.featured .plan-divider{background:rgba(255,255,255,.12);}
+.plan-features{list-style:none;margin-bottom:32px;}
+.plan-features li{display:flex;align-items:center;gap:10px;font-size:14px;margin-bottom:12px;}
+.plan-card:not(.featured) .plan-features li{color:var(--tx2);}
+.plan-card.featured .plan-features li{color:rgba(255,255,255,.8);}
+.plan-features li::before{
+  content:'✓';width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;
+}
+.plan-card:not(.featured) .plan-features li::before{background:var(--foam, #D8F3DC);color:var(--forest);}
+.plan-card.featured .plan-features li::before{background:rgba(168,224,99,.15);color:var(--lime);}
+.plan-btn{
+  display:block;text-align:center;padding:14px;border-radius:100px;
+  font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;
+}
+.plan-card:not(.featured) .plan-btn{background:var(--forest);color:#fff;}
+.plan-card:not(.featured) .plan-btn:hover{background:var(--forest-mid);}
+.plan-card.featured .plan-btn{background:var(--lime);color:var(--forest);}
+.plan-card.featured .plan-btn:hover{background:#bced74;}
+
+/* ─── TESTIMONIALS ─── */
+.testimonials{background:var(--warm);}
+.testimonials-header{text-align:center;margin-bottom:64px;}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.testi-card{
+  background:var(--white);border-radius:20px;padding:28px;
+  border:1px solid var(--sand);
+}
+.testi-stars{color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:14px;}
+.testi-text{font-size:15px;color:var(--tx2);line-height:1.75;margin-bottom:20px;font-style:italic;}
+.testi-author{display:flex;align-items:center;gap:12px;}
+.testi-avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--forest);display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--white);font-weight:700;flex-shrink:0;
+}
+.testi-name{font-size:14px;font-weight:700;color:var(--forest);}
+.testi-loc{font-size:12px;color:var(--tx3);}
+
+/* ─── CTA BANNER ─── */
+.cta-banner{
+  background:var(--forest);padding:100px 5%;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-banner::before{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,224,99,.1),transparent);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.cta-banner-inner{position:relative;z-index:2;}
+.cta-title{font-family:'DM Serif Display',serif;font-size:clamp(32px,5vw,60px);color:#fff;margin-bottom:16px;line-height:1.15;}
+.cta-title em{font-style:italic;color:var(--lime);}
+.cta-sub{font-size:18px;color:rgba(255,255,255,.6);margin-bottom:40px;}
+.cta-trial{font-size:13px;color:rgba(255,255,255,.4);margin-top:16px;}
+
+/* ─── FOOTER ─── */
+footer{background:#0A1F12;padding:60px 5% 32px;}
+.footer-inner{max-width:1200px;margin:0 auto;}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px;}
+.footer-brand .logo-text{font-family:'DM Serif Display',serif;font-size:24px;color:#fff;margin-bottom:12px;}
+.footer-brand p{font-size:14px;color:rgba(255,255,255,.4);line-height:1.7;max-width:280px;}
+.footer-col h4{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:16px;}
+.footer-col a{display:block;font-size:14px;color:rgba(255,255,255,.5);text-decoration:none;margin-bottom:10px;transition:color .2s;}
+.footer-col a:hover{color:var(--lime);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:32px;border-top:1px solid rgba(255,255,255,.06);}
+.footer-copy{font-size:13px;color:rgba(255,255,255,.25);}
+.footer-tagline{font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,.2);}
+
+/* ─── SCROLL REVEAL ─── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .6s,transform .6s;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.1s;}
+.reveal-delay-2{transition-delay:.2s;}
+.reveal-delay-3{transition-delay:.3s;}
+
+/* ─── MOBILE NAV MENU ─── */
+.mobile-menu{
+  display:none;position:fixed;inset:0;z-index:99;
+  background:var(--cream);flex-direction:column;
+  justify-content:center;align-items:center;gap:32px;
+}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{font-size:24px;font-weight:600;color:var(--forest);text-decoration:none;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .hero-visual{display:none;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .steps{grid-template-columns:1fr 1fr;gap:24px;}
+  .step::after{display:none;}
+  .pricing-grid{grid-template-columns:1fr;}
+  .plan-card.featured{transform:none;}
+  .testimonials-grid{grid-template-columns:1fr;}
+  .footer-top{grid-template-columns:1fr 1fr;}
+  .demo-inner{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+}
+@media(max-width:600px){
+  .features-grid{grid-template-columns:1fr;}
+  .steps{grid-template-columns:1fr;}
+  .hero-stats{gap:20px;}
+  .footer-top{grid-template-columns:1fr;}
+  .footer-bottom{flex-direction:column;gap:8px;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">🐟</div>
+    <span class="nav-logo-text">FishTrack Pro</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="fishtrackpro-p3.html" class="nav-signin">Sign In</a>
+    <a href="fishtrackpro-p3.html#register" class="nav-cta">Start Free Trial</a>
+  </div>
+  <div class="hamburger" onclick="toggleMenu()" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#features" onclick="toggleMenu()">Features</a>
+  <a href="#how" onclick="toggleMenu()">How it Works</a>
+  <a href="#pricing" onclick="toggleMenu()">Pricing</a>
+  <a href="fishtrackpro-p3.html" onclick="toggleMenu()">Sign In</a>
+  <a href="fishtrackpro-p3.html" onclick="toggleMenu()" style="background:var(--forest);color:#fff;padding:14px 32px;border-radius:100px;font-size:18px;">Start Free Trial →</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">🇳🇬 Built for Nigerian Fish Farmers</div>
+    <h1 class="hero-title">
+      Grow Your Farm.<br>
+      <em>Track Everything.</em>
+    </h1>
+    <p class="hero-sub">FishTrack Pro gives you complete control over your catfish farm — ponds, feeding logs, harvests, inventory, expenses and sales — all in one place.</p>
+    <div class="hero-actions">
+      <a href="fishtrackpro-p3.html" class="btn-primary">Start 14-Day Free Trial <span>→</span></a>
+      <a href="#how" class="btn-ghost">See How It Works <span>↓</span></a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">14</div><div class="label">Day free trial</div></div>
+      <div class="hero-stat"><div class="num">₦0</div><div class="label">Card needed to start</div></div>
+      <div class="hero-stat"><div class="num">∞</div><div class="label">Harvests you can track</div></div>
+    </div>
+  </div>
+  <!-- Hero Visual Card -->
+  <div class="hero-visual">
+    <div class="hero-card">
+      <div class="hc-label">Pond Overview · June 2026</div>
+      <div class="hc-row">
+        <div class="hc-pond">🪣 Pond Alpha — Concrete</div>
+        <div class="hc-chip">✓ Active</div>
+      </div>
+      <div class="hc-stats">
+        <div class="hc-stat"><div class="hc-stat-num">Week 8</div><div class="hc-stat-lbl">Age</div></div>
+        <div class="hc-stat"><div class="hc-stat-num">4,820</div><div class="hc-stat-lbl">Alive</div></div>
+        <div class="hc-stat"><div class="hc-stat-num" style="color:#52C07A;">1.42</div><div class="hc-stat-lbl">FCR</div></div>
+        <div class="hc-stat"><div class="hc-stat-num">340g</div><div class="hc-stat-lbl">Avg wt</div></div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hc-label">This Month — Revenue</div>
+      <div class="hc-revenue">₦487,500</div>
+      <div class="hc-sub">↑ 23% vs last month · 3 sales recorded</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust">
+  <p>Trusted by catfish farmers across Nigeria</p>
+  <div class="trust-logos">
+    <span class="trust-logo">LAGOS</span>
+    <span class="trust-logo">•</span>
+    <span class="trust-logo">ABUJA</span>
+    <span class="trust-logo">•</span>
+    <span class="trust-logo">KANO</span>
+    <span class="trust-logo">•</span>
+    <span class="trust-logo">DELTA</span>
+    <span class="trust-logo">•</span>
+    <span class="trust-logo">OYO</span>
+    <span class="trust-logo">•</span>
+    <span class="trust-logo">RIVERS</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="features-header reveal">
+      <div class="section-eyebrow">Everything you need</div>
+      <h2 class="section-title">One app. Complete farm control.</h2>
+      <p class="section-sub">Built specifically for Nigerian catfish farming — from fingerling stocking to smoked fish sales.</p>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon">🪣</div>
+        <div class="feature-title">Pond Management</div>
+        <div class="feature-desc">Add unlimited ponds, track batches, monitor weekly growth, and get harvest projections based on real weight data.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <div class="feature-title">Daily Feed Logs</div>
+        <div class="feature-desc">Log feeding by brand and pellet size. Auto-calculates feed cost per kg. Tracks mortality and water quality daily.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚖️</div>
+        <div class="feature-title">Weight Tracker</div>
+        <div class="feature-desc">Record weekly weight samples per pond. View growth curves and FCR trends. Know exactly when to harvest.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Harvest Records</div>
+        <div class="feature-desc">Record wet or dry harvests per pond. Dry yield auto-calculated (live ÷ 4). Harvest costs auto-logged to expenses.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🐟</div>
+        <div class="feature-title">Fish Stock Inventory</div>
+        <div class="feature-desc">Auto-tracks live catfish per pond and smoked stock — Whole (Small/Medium/Big/Jumbo) and Cutlets (Head/Tail/Middle/Mixed).</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <div class="feature-title">Sales Tracker</div>
+        <div class="feature-desc">Record live or smoked fish sales. Tracks customers, outstanding payments, and updates inventory automatically.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <div class="feature-title">Expense Manager</div>
+        <div class="feature-desc">All costs auto-logged — fingerlings, feed, harvest labour, fuel, charcoal. Full P&L at a glance.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌾</div>
+        <div class="feature-title">Feed Inventory</div>
+        <div class="feature-desc">Track feed brands by pellet size and bag weight. Low-stock alerts. Feed cost auto-deducted when you log daily feeding.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <div class="feature-title">Reports & Analytics</div>
+        <div class="feature-desc">P&L by pond or farm-wide. FCR trends. Revenue vs expenses charts. Harvest history. Everything at your fingertips.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">Simple process</div>
+      <h2 class="section-title">Up and running in minutes.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal reveal-delay-1">
+        <div class="step-num">01</div>
+        <div class="step-title">Create Your Account</div>
+        <div class="step-desc">Register with your email, farm name and location. 14-day free trial starts immediately — no card required.</div>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num">02</div>
+        <div class="step-title">Add Your Ponds</div>
+        <div class="step-desc">Enter each pond's size, type and capacity. Stock your fingerlings with a single form — cost auto-logs to expenses.</div>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <div class="step-num">03</div>
+        <div class="step-title">Log Daily Activity</div>
+        <div class="step-desc">Record feed, deaths and weight samples each day. The app calculates FCR, biomass and growth rate automatically.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">Track Sales & Profits</div>
+        <div class="step-desc">Record harvests and sales. See your real P&L including all costs. Know exactly how much money your farm makes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO SECTION -->
+<section class="demo">
+  <div class="section-inner">
+    <div class="demo-inner">
+      <div class="reveal">
+        <div class="section-eyebrow">Live dashboard</div>
+        <h2 class="section-title">See your farm's health at a glance.</h2>
+        <p class="section-sub" style="margin-bottom:32px;">Your dashboard updates in real time as you log feeding, harvests, and sales. Everything synced to the cloud — access from any device.</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
+          <li style="display:flex;align-items:center;gap:12px;font-size:15px;color:var(--tx2);">
+            <span style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;">✓</span>
+            Real-time sync across devices via Firebase
+          </li>
+          <li style="display:flex;align-items:center;gap:12px;font-size:15px;color:var(--tx2);">
+            <span style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;">✓</span>
+            Works offline — syncs when back online
+          </li>
+          <li style="display:flex;align-items:center;gap:12px;font-size:15px;color:var(--tx2);">
+            <span style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;">✓</span>
+            Your data is private — completely isolated per farm
+          </li>
+          <li style="display:flex;align-items:center;gap:12px;font-size:15px;color:var(--tx2);">
+            <span style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;">✓</span>
+            Nigerian Naira (₦) built-in with local context
+          </li>
+        </ul>
+      </div>
+      <div class="demo-screens reveal reveal-delay-2">
+        <div class="demo-screen-main">
+          <div class="demo-screen-nav">
+            <span></span><span></span><span></span>
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Dashboard — June 2026</div>
+          <div class="demo-ui">
+            <div class="demo-metric">
+              <div class="dm-label">Active Ponds</div>
+              <div class="dm-val green">4</div>
+              <div class="demo-bar"><div class="demo-bar-fill" style="width:80%"></div></div>
+            </div>
+            <div class="demo-metric">
+              <div class="dm-label">Fish Alive</div>
+              <div class="dm-val">18,240</div>
+              <div class="demo-bar"><div class="demo-bar-fill" style="width:65%"></div></div>
+            </div>
+            <div class="demo-metric">
+              <div class="dm-label">This Month Revenue</div>
+              <div class="dm-val green" style="font-size:18px;">₦487,500</div>
+              <div class="demo-bar"><div class="demo-bar-fill" style="width:90%"></div></div>
+            </div>
+            <div class="demo-metric">
+              <div class="dm-label">Feed Cost</div>
+              <div class="dm-val amber" style="font-size:18px;">₦210,000</div>
+              <div class="demo-bar"><div class="demo-bar-fill" style="width:45%;background:#F5A623;"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:12px;background:rgba(255,255,255,.04);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,.06);">
+            <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Pond Status</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.6);">🪣 Pond Alpha</span>
+                <span style="font-size:11px;background:rgba(82,192,122,.15);color:#52C07A;padding:2px 8px;border-radius:10px;">Week 8 · FCR 1.42</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.6);">🪣 Pond Beta</span>
+                <span style="font-size:11px;background:rgba(82,192,122,.15);color:#52C07A;padding:2px 8px;border-radius:10px;">Week 5 · FCR 1.61</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;color:rgba(255,255,255,.6);">🪣 Pond Gamma</span>
+                <span style="font-size:11px;background:rgba(245,166,35,.12);color:#F5A623;padding:2px 8px;border-radius:10px;">Week 12 · Harvest Soon</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-inner">
+    <div class="pricing-header reveal">
+      <div class="section-eyebrow">Simple pricing</div>
+      <h2 class="section-title">Start free. Upgrade when ready.</h2>
+      <p class="section-sub" style="margin:0 auto;">14-day free trial on all plans. No credit card required to start.</p>
+    </div>
+    <div class="pricing-grid reveal">
+      <!-- Basic -->
+      <div class="plan-card">
+        <div class="plan-name">Basic</div>
+        <div class="plan-price">₦3,000</div>
+        <div class="plan-period">per month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Up to 4 ponds</li>
+          <li>Daily feed logs</li>
+          <li>Harvest tracking</li>
+          <li>Sales & expenses</li>
+          <li>Feed inventory</li>
+          <li>Basic reports</li>
+        </ul>
+        <a href="fishtrackpro-p3.html" class="plan-btn">Start Free Trial</a>
+      </div>
+      <!-- Pro -->
+      <div class="plan-card featured">
+        <div class="plan-badge">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">₦7,500</div>
+        <div class="plan-period">per month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Up to 10 ponds</li>
+          <li>Everything in Basic</li>
+          <li>Fish stock inventory</li>
+          <li>Smoked fish tracking</li>
+          <li>Advanced analytics</li>
+          <li>FCR trend reports</li>
+          <li>Customer management</li>
+        </ul>
+        <a href="fishtrackpro-p3.html" class="plan-btn">Start Free Trial</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="plan-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price">₦15,000</div>
+        <div class="plan-period">per month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Unlimited ponds</li>
+          <li>Everything in Pro</li>
+          <li>Staff accounts</li>
+          <li>API access</li>
+          <li>Priority support</li>
+          <li>Custom reports</li>
+          <li>Data export (PDF)</li>
+        </ul>
+        <a href="fishtrackpro-p3.html" class="plan-btn">Start Free Trial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="section-inner">
+    <div class="testimonials-header reveal">
+      <div class="section-eyebrow">What farmers say</div>
+      <h2 class="section-title">Real results from real farms.</h2>
+    </div>
+    <div class="testimonials-grid reveal">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Before FishTrack Pro, I had no idea what my FCR was or how much each pond was costing me. Now I can see my profit and loss in real time. My feed cost has dropped by 18%."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">AO</div>
+          <div>
+            <div class="testi-name">Adeyemi Oluwaseun</div>
+            <div class="testi-loc">Catfish Farmer · Ikorodu, Lagos</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"The smoked fish inventory is what sold it for me. I can track exactly how much small, medium, and jumbo I have in stock and it deducts automatically when I make a sale."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">EM</div>
+          <div>
+            <div class="testi-name">Emeka Nwosu</div>
+            <div class="testi-loc">Fish Processor & Farmer · Onitsha, Anambra</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"I manage 8 ponds across two locations. FishTrack Pro keeps everything organised. The daily log takes me 2 minutes and I always know which pond needs attention."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">FK</div>
+          <div>
+            <div class="testi-name">Fatima Kabir</div>
+            <div class="testi-loc">Commercial Farmer · Kano State</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-banner">
+  <div class="cta-banner-inner">
+    <h2 class="cta-title reveal">Your farm data.<br><em>Finally organised.</em></h2>
+    <p class="cta-sub reveal">Join Nigerian catfish farmers building more profitable farms with FishTrack Pro.</p>
+    <div class="reveal">
+      <a href="fishtrackpro-p3.html" class="btn-primary" style="font-size:17px;padding:17px 40px;display:inline-flex;">
+        Start Your Free Trial Today →
+      </a>
+      <div class="cta-trial">14 days free · No card required · Cancel anytime</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo-text">🐟 FishTrack Pro</div>
+        <p>Nigeria's complete fish farm management platform. Built by Doha Prime Ventures for Nigerian catfish farmers.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#how">How it Works</a>
+        <a href="fishtrackpro-p3.html">Sign In</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Doha Prime</a>
+        <a href="#">dohaprimeventure.com</a>
+        <a href="#">Contact Us</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:olufemidominic@gmail.com">olufemidominic@gmail.com</a>
+        <a href="#">Support</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 Doha Prime Ventures. All rights reserved.</div>
+      <div class="footer-tagline">BUILT_IN_NIGERIA // FISHTRACK_PRO_v3</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll nav
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Mobile menu
+function toggleMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const ham = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  const isOpen = menu.classList.contains('open');
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+  ham.children[0].style.transform = isOpen ? 'translateY(7px) rotate(45deg)' : '';
+  ham.children[1].style.opacity = isOpen ? '0' : '';
+  ham.children[2].style.transform = isOpen ? 'translateY(-7px) rotate(-45deg)' : '';
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
