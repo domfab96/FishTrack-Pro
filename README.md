@@ -79,6 +79,12 @@ A public, Jiji-style produce aggregation board, separate from the main farmer da
 - Once a farmer marks a listing "Sold" and enters the final price, FishTrack Pro calculates the platform's commission (`MARKETPLACE_COMMISSION_RATE`, default 3%, adjustable within the 2–5% range) and sends a one-off Paystack payment link to the farmer's Inbox — reusing the same live Paystack integration as subscriptions, no split-payment infrastructure required.
 - New Firestore collections: `harvestListings` (public read, farmer-owned write), `buyRequests` (public read, buyer-owned write), `buyers` (owner/admin read-write only). See `firestore.rules` additions needed below.
 
+### Financial Forecast (Phase 7) — Pro/Enterprise
+A new "💹 Forecast" screen in the farmer dashboard, built entirely from data already in the app (no external integrations, unlike Phase 6):
+- **Current Cycle Snapshot** — alive fish, current average weight, cost to date, and projected harvest date, per pond or combined across all ponds.
+- **Break-Even & Scenario Calculator** — enter a retail price, bulk price, and retail/bulk split, and it live-recalculates projected dry yield (using the app's existing live÷4 conversion), projected total cost (actual cost to date, from the same expense filter as Reports > P&L, plus an estimated remaining feed cost based on the pond's current FCR and feed price), projected revenue, profit, and a break-even bar showing what % of yield needs to sell to cover costs.
+- **12-Month Cash Flow** — last 6 months actual (revenue vs expenses, from real Sales/Expenses records) plus the next 6 months projected using a simple trailing-3-month average, visually distinguished (diagonal-striped bars) so actual and projected are never confused.
+
 ### Admin Panel
 Accessible at `fishtrackpro.netlify.app/fishtrackpro-p3.html?admin=true` — view all registered farmers, aggregated industry data, manage subscriptions, and moderate AI-suggested outreach messages.
 
@@ -129,8 +135,8 @@ After changing the environment variable, trigger a redeploy for the change to ta
 - [x] Phase 5, Stage 1 — Credit Scoring Engine: Water Source + Power Backup fields added to pond setup (unlocks the future irrScore calculation)
 - [ ] Phase 5, Stage 2 — Farm Credit Profile screen (auto-calculated credit score, recommended loan ceiling)
 - [ ] Phase 5, Stage 3 — Lender API endpoint (requires NITDA registration, Mono/Okra Open Banking)
-- [ ] Phase 6 — Bank Statement Reconciliation, Financial Discipline Score
-- [ ] Phase 7 — Financial Forecasting Dashboard (12-month cash flow projection)
+- [x] Phase 7 — Financial Forecasting Dashboard (break-even calculator, scenario modelling, 12-month cash flow projection)
+- [ ] Phase 6 — Bank Statement Reconciliation, Financial Discipline Score (blocked on NITDA registration + Mono/Okra Open Banking)
 - [ ] Phase 9 — Cooperative Group Account (multi-farm admin view, Enterprise tier)
 
 ---

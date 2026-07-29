@@ -475,6 +475,7 @@ input,select,textarea,button{font-family:inherit;}
 .rev-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .rev-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;background:var(--forest);transition:height .3s;}
 .rev-bar.exp-bar{background:var(--red);opacity:.7;}
+.rev-bar.fc-projected{opacity:.35;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.3) 0 3px,transparent 3px 6px);}
 .rev-legend{display:flex;gap:16px;margin-top:8px;justify-content:center;}
 .rev-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3);}
 .rev-legend-dot{width:10px;height:10px;border-radius:3px;}
@@ -851,6 +852,10 @@ input,select,textarea,button{font-family:inherit;}
       <button class="sidebar-item" id="snav-reports" onclick="switchScreen('reports',this)">
         <span class="s-icon">📈</span><span class="s-label" id="snav-reports-lbl">Reports</span>
       </button>
+      <button class="sidebar-item" id="snav-forecast" onclick="switchScreen('forecast',this);renderForecastScreen();" style="position:relative;">
+        <span class="s-icon">💹</span><span class="s-label" id="snav-forecast-lbl">Forecast</span>
+        <span style="font-size:9px;font-weight:800;background:#52C07A;color:#fff;padding:2px 6px;border-radius:10px;">PRO</span>
+      </button>
       <!-- AI ASSISTANT — Phase 4 -->
       <button class="sidebar-item" id="snav-ai" onclick="switchScreen('ai',this)" style="margin-top:6px;background:linear-gradient(135deg,rgba(82,192,122,.15),rgba(46,139,87,.1));border:1px solid rgba(82,192,122,.25);position:relative;">
         <span class="s-icon">🤖</span>
@@ -1192,6 +1197,59 @@ input,select,textarea,button{font-family:inherit;}
         </div>
         <div class="atab-panel active" id="atab-weekly"><div id="weekly-analysis-content"></div></div>
         <div class="atab-panel" id="atab-monthly"><div id="monthly-analysis-content"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ FINANCIAL FORECAST SCREEN (Phase 7) ═══════════════ -->
+    <div class="screen" id="screen-forecast">
+      <div id="fc-plan-gate" style="display:none;margin-bottom:16px;background:linear-gradient(135deg,#1B4332,#2D6A4F);border-radius:16px;padding:24px;text-align:center;color:#fff;">
+        <div style="font-size:32px;margin-bottom:10px;">🔒</div>
+        <div style="font-size:17px;font-weight:800;margin-bottom:6px;">Pro Feature</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;margin-bottom:16px;">Financial Forecasting is available on Pro and Enterprise plans — 12-month cash flow projection, break-even calculator, and selling-price scenario modelling from your actual farm data.</div>
+        <button onclick="showUpgradeModal()" style="background:#52C07A;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;">Upgrade to Pro →</button>
+      </div>
+
+      <div id="fc-content" style="display:none;">
+        <div class="field" style="margin-bottom:16px;"><label>Select Pond</label>
+          <select id="fc-pond-select" onchange="renderForecastScenario()"><option value="all">All Ponds (Combined)</option></select>
+        </div>
+
+        <div class="sec-label" style="margin-bottom:10px;">Current Cycle Snapshot</div>
+        <div class="metrics-grid" style="margin-bottom:16px;">
+          <div class="metric-box"><div class="metric-label">Alive (est.)</div><div class="metric-value" id="fc-alive">—</div></div>
+          <div class="metric-box"><div class="metric-label">Current Avg Weight</div><div class="metric-value" id="fc-avgweight">—</div></div>
+          <div class="metric-box"><div class="metric-label">Cost To Date</div><div class="metric-value red" id="fc-costtodate">₦0</div></div>
+          <div class="metric-box"><div class="metric-label">Projected Harvest</div><div class="metric-value" id="fc-harvestdate" style="font-size:13px;">—</div></div>
+        </div>
+
+        <div class="sec-label" style="margin-bottom:10px;">Break-Even &amp; Scenario Calculator</div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field"><label>Retail Price / kg (₦)</label><input type="number" id="fc-retail-price" oninput="renderForecastScenario()" placeholder="e.g. 1800"></div>
+              <div class="field"><label>Bulk Price / kg (₦)</label><input type="number" id="fc-bulk-price" oninput="renderForecastScenario()" placeholder="e.g. 1500"></div>
+            </div>
+            <div class="field">
+              <label>Retail Share — <span id="fc-retail-pct-label">70%</span> retail / <span id="fc-bulk-pct-label">30%</span> bulk</label>
+              <input type="range" id="fc-retail-pct" min="0" max="100" value="70" oninput="renderForecastScenario()" style="width:100%;">
+            </div>
+            <div id="fc-scenario-output"></div>
+          </div>
+        </div>
+
+        <div class="sec-label" style="margin-bottom:10px;">12-Month Cash Flow — Actual + Projected</div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-body">
+            <div style="display:flex;gap:14px;font-size:11px;color:var(--tx3);margin-bottom:10px;">
+              <span><span style="display:inline-block;width:8px;height:8px;background:var(--leaf);border-radius:2px;margin-right:4px;"></span>Revenue</span>
+              <span><span style="display:inline-block;width:8px;height:8px;background:var(--amber);border-radius:2px;margin-right:4px;"></span>Expenses</span>
+              <span style="margin-left:auto;">Shaded = projected</span>
+            </div>
+            <div id="fc-cashflow-chart" style="display:flex;align-items:flex-end;gap:4px;height:110px;"></div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--tx3);">Projections beyond this month use your trailing 3-month average revenue and expenses — a simple estimate, not a guarantee. Update your daily logs, expenses and sales regularly for the most accurate picture.</div>
       </div>
     </div>
 
@@ -4202,6 +4260,7 @@ const PAGE_META = {
   harvest:   { title:'Harvest',        addLabel:'+ Record Harvest',  addFn:'openHarvestModal(null)', ownerOnly:true },
   marketplace: { title:'Marketplace',  addLabel:'+ New Listing',     addFn:'openListingModal()', ownerOnly:true },
   reports:   { title:'Reports',        addLabel:null },
+  forecast:  { title:'Financial Forecast', addLabel:null },
   ai:        { title:'🤖 AI Assistant', addLabel:null },
 };
 
@@ -4235,6 +4294,7 @@ function switchScreen(name) {
   if (name === 'inventory') renderInventoryScreen();
   if (name === 'harvest')   renderHarvestScreen();
   if (name === 'marketplace') renderMarketplaceScreen();
+  if (name === 'forecast')  renderForecastScreen();
   if (name === 'ai')        { initAIScreen(); }
   if (name === 'inbox')     { renderInboxScreen(); }
   // Show/hide AI input bar and FAB
@@ -6372,6 +6432,175 @@ function renderPL() {
         </div>
       </div>`).join('')}
     </div></div>` : ''}`;
+}
+
+// ══════════════════════════════════════════════════════
+// FINANCIAL FORECAST (Phase 7) — break-even calculator + 12-month cash flow.
+// "Cost to date" reuses the exact same expense filtering as the Reports > P&L
+// tab (actual cash spent), so the two screens always agree. The forward
+// projection (remaining feed cost to reach harvest, and months 7-12 of the
+// cash flow chart) is a clearly-labelled estimate, not a guarantee.
+// ══════════════════════════════════════════════════════
+
+function renderForecastPondOptions() {
+  const sel = document.getElementById('fc-pond-select');
+  if (!sel) return;
+  const ponds = getPonds();
+  const prevVal = sel.value || 'all';
+  sel.innerHTML = '<option value="all">All Ponds (Combined)</option>' + ponds.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if ([...sel.options].some(o => o.value === prevVal)) sel.value = prevVal;
+}
+
+function computeForecastSnapshot(pondId) {
+  const allPonds = getPonds();
+  const ponds = pondId === 'all' ? allPonds : allPonds.filter(p => p.id === pondId);
+  const pondIdSet = new Set(allPonds.map(p => p.id));
+
+  let alive = 0, weightedWeightSum = 0, weightedWeightCount = 0;
+  let totalFeedKg = 0, totalFeedCostFromLogs = 0;
+  let currentBiomassKg = 0, projectedLiveKg = 0;
+  let soonestHarvest = null, fcrSamples = [];
+
+  ponds.forEach(p => {
+    const b = getBatch(p.id);
+    if (!b) return;
+    const aliveHere = Math.max(0, (parseInt(b.count) || 0) - getTotalMort(p.id));
+    alive += aliveHere;
+    const latestW = getLatestWeight(p.id);
+    if (latestW) { weightedWeightSum += latestW * aliveHere; weightedWeightCount += aliveHere; }
+    totalFeedKg += getTotalFeed(p.id);
+    totalFeedCostFromLogs += getLogs(p.id).reduce((s, l) => s + (parseFloat(l.feedCost) || 0), 0);
+    currentBiomassKg += getEstBiomass(p.id);
+    const targetW = parseFloat(b.targetWeight) || latestW || 0;
+    projectedLiveKg += (aliveHere * targetW) / 1000;
+    const fcr = calcFCR(p.id);
+    if (fcr) fcrSamples.push(fcr);
+    const proj = getHarvestProjection(p.id);
+    if (proj && proj.harvestDate && (!soonestHarvest || proj.harvestDate < soonestHarvest)) soonestHarvest = proj.harvestDate;
+  });
+
+  const avgWeight = weightedWeightCount ? weightedWeightSum / weightedWeightCount : null;
+  const avgFCR = fcrSamples.length ? fcrSamples.reduce((s, f) => s + f, 0) / fcrSamples.length : 1.8; // 1.8 = reasonable default when no data yet
+  const costPerKgFeed = totalFeedKg > 0 ? totalFeedCostFromLogs / totalFeedKg : null;
+
+  // "Cost to date" — same expense filter convention as Reports > P&L, so the two screens agree.
+  const expenses = pondId === 'all' ? (farmData.expenses || []) : (farmData.expenses || []).filter(e => !e.pondId || e.pondId === pondId);
+  const costToDate = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+
+  // Estimated remaining feed cost to reach target weight, from current FCR + feed price trend.
+  const remainingGainKg = Math.max(0, projectedLiveKg - currentBiomassKg);
+  const remainingFeedKg = remainingGainKg * avgFCR;
+  const remainingFeedCost = costPerKgFeed != null ? remainingFeedKg * costPerKgFeed : 0;
+
+  return {
+    alive, avgWeight, costToDate, projectedLiveKg, soonestHarvest,
+    projectedTotalCost: costToDate + remainingFeedCost,
+    hasActiveBatch: ponds.some(p => getBatch(p.id)),
+  };
+}
+
+function renderForecastScreen() {
+  const sub = getSubscriptionStatus();
+  const isPro = sub.status === 'active' && (sub.plan === 'pro' || sub.plan === 'enterprise');
+  document.getElementById('fc-plan-gate').style.display = isPro ? 'none' : 'block';
+  document.getElementById('fc-content').style.display = isPro ? 'block' : 'none';
+  if (!isPro) return;
+
+  renderForecastPondOptions();
+  if (!document.getElementById('fc-retail-price').value) {
+    const sales = (farmData.sales || []).filter(s => s.price);
+    const lastPrice = sales.length ? parseFloat(sales[sales.length - 1].price) : 1800;
+    document.getElementById('fc-retail-price').value = Math.round(lastPrice) || 1800;
+    document.getElementById('fc-bulk-price').value = Math.round((lastPrice || 1800) * 0.85);
+  }
+  renderForecastScenario();
+  renderForecastCashFlow();
+}
+
+function renderForecastScenario() {
+  const pondId = document.getElementById('fc-pond-select')?.value || 'all';
+  const snap = computeForecastSnapshot(pondId);
+  const cur = CUR();
+
+  document.getElementById('fc-alive').textContent = snap.alive ? snap.alive.toLocaleString() : '—';
+  document.getElementById('fc-avgweight').textContent = snap.avgWeight ? Math.round(snap.avgWeight) + 'g' : '—';
+  document.getElementById('fc-costtodate').textContent = fmt(snap.costToDate);
+  document.getElementById('fc-harvestdate').textContent = snap.soonestHarvest
+    ? snap.soonestHarvest.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+    : (snap.hasActiveBatch ? 'Add weight samples' : 'No active batch');
+
+  const retailPrice = parseFloat(document.getElementById('fc-retail-price').value) || 0;
+  const bulkPrice = parseFloat(document.getElementById('fc-bulk-price').value) || 0;
+  const retailPct = parseInt(document.getElementById('fc-retail-pct').value) / 100;
+  const bulkPct = 1 - retailPct;
+  document.getElementById('fc-retail-pct-label').textContent = Math.round(retailPct * 100) + '%';
+  document.getElementById('fc-bulk-pct-label').textContent = Math.round(bulkPct * 100) + '%';
+
+  const projectedDryKg = snap.projectedLiveKg / 4; // matches the app's established live-to-dry conversion
+  const revenue = (projectedDryKg * retailPct * retailPrice) + (projectedDryKg * bulkPct * bulkPrice);
+  const profit = revenue - snap.projectedTotalCost;
+  const blendedPrice = (retailPct * retailPrice) + (bulkPct * bulkPrice);
+  const breakEvenKg = blendedPrice > 0 ? snap.projectedTotalCost / blendedPrice : 0;
+  const breakEvenPct = projectedDryKg > 0 ? Math.min(100, (breakEvenKg / projectedDryKg) * 100) : 0;
+
+  const out = document.getElementById('fc-scenario-output');
+  if (!snap.hasActiveBatch) {
+    out.innerHTML = `<div class="empty-state" style="padding:20px 0;"><div class="empty-text">No active batch to project — stock a pond to see a forecast.</div></div>`;
+    return;
+  }
+  out.innerHTML = `
+    <div class="metrics-grid" style="margin-top:14px;">
+      <div class="metric-box"><div class="metric-label">Projected Dry Yield</div><div class="metric-value blue">${projectedDryKg.toFixed(1)} kg</div></div>
+      <div class="metric-box"><div class="metric-label">Projected Total Cost</div><div class="metric-value red">${fmt(snap.projectedTotalCost)}</div></div>
+      <div class="metric-box"><div class="metric-label">Projected Revenue</div><div class="metric-value green">${fmt(revenue)}</div></div>
+      <div class="metric-box"><div class="metric-label">Projected Profit</div><div class="metric-value ${profit >= 0 ? 'green' : 'red'}">${profit >= 0 ? '+' : ''}${fmt(profit)}</div></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx3);margin-bottom:6px;">
+        <span>Break-even at ${breakEvenKg.toFixed(1)}kg (${breakEvenPct.toFixed(0)}% of yield)</span>
+        <span>${(100 - breakEvenPct).toFixed(0)}% is profit</span>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;height:14px;overflow:hidden;">
+        <div style="width:${breakEvenPct}%;height:100%;background:${breakEvenPct <= 100 ? 'var(--amber)' : 'var(--red)'};"></div>
+      </div>
+    </div>`;
+}
+
+function renderForecastCashFlow() {
+  const el = document.getElementById('fc-cashflow-chart');
+  if (!el) return;
+  const now = new Date();
+  const months = [];
+
+  // Last 6 months — actual
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleDateString('en-NG', { month: 'short' });
+    const rev = (farmData.sales || []).filter(s => s.date && s.date.startsWith(key)).reduce((s, e) => s + (parseFloat(e.total) || 0), 0);
+    const exp = (farmData.expenses || []).filter(e => e.date && e.date.startsWith(key)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+    months.push({ label, rev, exp, projected: false });
+  }
+
+  // Trailing 3-month average, used to project the next 6 months
+  const trailing = months.slice(-3);
+  const avgRev = trailing.reduce((s, m) => s + m.rev, 0) / (trailing.length || 1);
+  const avgExp = trailing.reduce((s, m) => s + m.exp, 0) / (trailing.length || 1);
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const label = d.toLocaleDateString('en-NG', { month: 'short' });
+    months.push({ label, rev: avgRev, exp: avgExp, projected: true });
+  }
+
+  const maxVal = Math.max(...months.map(m => Math.max(m.rev, m.exp)), 1);
+  el.innerHTML = months.map(m => `
+    <div class="rev-bar-wrap" style="flex:1;">
+      <div style="display:flex;align-items:flex-end;gap:2px;width:100%;height:80px;">
+        <div class="rev-bar${m.projected ? ' fc-projected' : ''}" style="flex:1;height:${Math.max(3, (m.rev / maxVal) * 80)}px;" title="${fmt(m.rev)}${m.projected ? ' (projected)' : ''}"></div>
+        <div class="rev-bar exp-bar${m.projected ? ' fc-projected' : ''}" style="flex:1;height:${Math.max(3, (m.exp / maxVal) * 80)}px;" title="${fmt(m.exp)}${m.projected ? ' (projected)' : ''}"></div>
+      </div>
+      <div class="chart-date">${m.label}</div>
+    </div>`).join('');
 }
 
 function renderFCRTrend() {
