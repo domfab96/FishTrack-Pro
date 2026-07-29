@@ -38,13 +38,17 @@ The entire farmer-facing app lives in **one HTML file** (`fishtrackpro-p3.html`)
 ```
 FishTrackPro/
 ├── fishtrackpro-p3.html        # Main app — farmer dashboard, admin panel, AI chat (all in one file)
-├── index.html                  # Landing/redirect page
+├── index.html                  # Landing page
+├── marketplace.html             # Public harvest listing / buyer marketplace (Jiji-style, no login to browse)
 ├── manifest.json                # PWA manifest (installable app metadata)
 ├── sw.js                        # Service worker (offline caching, install prompt)
 ├── netlify.toml                 # Netlify build config + PWA headers
 └── netlify/
     └── functions/
-        └── ai-chat.js           # Serverless function — proxies chat requests to Anthropic API
+        ├── ai-chat.js              # Serverless function — proxies chat requests to Anthropic API
+        ├── sensor-ingest.js        # Serverless function — receives ESP32 IoT sensor readings
+        ├── create-payment-link.js  # Serverless function — generates a Paystack payment link for marketplace commission
+        └── monthly-review-cron.js  # SCHEDULED function — generates every Pro/Enterprise farmer's Monthly AI Review automatically (06:00 UTC, 1st of each month)
 ```
 
 ---
@@ -65,23 +69,37 @@ FishTrackPro/
 - **Admin AI Suggest** — reads farmer data and drafts a personalised message for admin review before sending
 - **Two-way Farmer↔Admin chat** — real-time inbox with unread badges
 - **Smart Alerts** — up to 3 prioritised alerts per day based on farm conditions
-- **Monthly AI Review** — full performance report generated automatically each month
+- **Monthly AI Review** — full performance report for every Pro/Enterprise farmer, generated automatically at 06:00 UTC on the 1st of each month by the `monthly-review-cron.js` scheduled function — no longer dependent on the farmer opening the app. A client-side fallback still runs on login (days 1–5) in case the scheduled run ever fails, but checks Firestore first so it won't regenerate (and re-bill the Anthropic API for) a review that already exists.
+
+### Marketplace (Phase 8) — `marketplace.html`
+A public, Jiji-style produce aggregation board, separate from the main farmer dashboard so anyone can browse without an account:
+- **Farmers** post available harvest for sale (species, quantity, price, date available) directly from their existing FishTrack Pro login — no separate signup.
+- **Buyers** are new to the platform, so they go through a light KYC signup (name, phone, business name) before they can unlock a seller's contact details or post their own "want to buy" request. No document upload or manual approval at this stage — self-declared info is enough to start.
+- Contact between buyer and seller happens off-platform via WhatsApp deep link — the marketplace only makes the introduction; the actual sale (payment, delivery) is arranged directly between the two parties, matching how fish trading already works in Nigeria.
+- Once a farmer marks a listing "Sold" and enters the final price, FishTrack Pro calculates the platform's commission (`MARKETPLACE_COMMISSION_RATE`, default 3%, adjustable within the 2–5% range) and sends a one-off Paystack payment link to the farmer's Inbox — reusing the same live Paystack integration as subscriptions, no split-payment infrastructure required.
+- New Firestore collections: `harvestListings` (public read, farmer-owned write), `buyRequests` (public read, buyer-owned write), `buyers` (owner/admin read-write only). See `firestore.rules` additions needed below.
 
 ### Admin Panel
 Accessible at `fishtrackpro.netlify.app/fishtrackpro-p3.html?admin=true` — view all registered farmers, aggregated industry data, manage subscriptions, and moderate AI-suggested outreach messages.
 
 ### Payments
-Paystack integration for subscription billing (Basic / Pro / Enterprise tiers). Currently running on a test key pending business verification for the live key.
+Paystack integration for subscription billing (Basic / Pro / Enterprise tiers), now running on the live key. Marketplace commission invoices use the same Paystack account via a standalone one-off payment link (see `create-payment-link.js`).
 
 ---
 
 ## Environment Variables (Netlify)
 
-The `ai-chat.js` function requires one environment variable set in the Netlify dashboard (**Site settings → Environment variables**) — never committed to this repo:
+Set these in the Netlify dashboard (**Site settings → Environment variables**) — never commit them to this repo:
 
 ```
-ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_API_KEY=your_key_here          # ai-chat.js — Claude Haiku AI Assistant
+PAYSTACK_SECRET_KEY=sk_live_or_test      # create-payment-link.js — marketplace commission invoices
+FIREBASE_ADMIN_PASSWORD=your_password    # monthly-review-cron.js — signs in as ADMIN_EMAIL to read all farmers' data
 ```
+
+`PAYSTACK_SECRET_KEY` is different from the `PAYSTACK_PUBLIC_KEY` hardcoded in `fishtrackpro-p3.html` — the public key is safe to expose client-side, the secret key must only ever live in Netlify's environment variables.
+
+`FIREBASE_ADMIN_PASSWORD` is the actual login password for the `olufemidominic@gmail.com` Firebase Auth account (the same one used to open the in-app Admin Panel). The scheduled function signs in with it via the Firebase Auth REST API to get a short-lived ID token, then reads/writes Firestore over its REST API — no Firebase Admin SDK or service-account key needed. Treat this env var with the same care as a database password: it grants the same access the Admin Panel has.
 
 ---
 

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FishTrack Pro Marketplace — Buy &amp; Sell Farm-Fresh Catfish</title>
+<meta name="description" content="Nigeria's fish farm marketplace. Browse available harvest from verified FishTrack Pro farmers, or post what you're looking to buy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --forest:#0D3320; --forest-mid:#1B5C35; --leaf:#2E8B57; --mint:#52C07A; --lime:#A8E063;
+  --cream:#F8F4EC; --warm:#EDE8DC; --sand:#D4C9A8; --gold:#C8A84B;
+  --tx:#1A1209; --tx2:#4A4030; --tx3:#8C7D65; --white:#FFFFFF; --r:16px;
+  --bor:#E5DFD0; --sur:#FFFFFF; --bg:#F8F4EC;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--tx);}
+a{color:inherit;}
+input,select,textarea,button{font-family:inherit;}
+
+nav{position:sticky;top:0;z-index:50;background:var(--forest);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+nav .logo{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;}
+nav .nav-actions{display:flex;gap:8px;align-items:center;font-size:13px;}
+nav a.home-link{color:rgba(255,255,255,.75);text-decoration:none;font-size:13px;}
+#buyer-status-pill{background:rgba(255,255,255,.12);padding:6px 12px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;}
+
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px;}
+.intro{background:var(--warm);border-radius:var(--r);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--tx2);line-height:1.6;}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.tab-btn{flex:1;min-width:140px;padding:11px 14px;border-radius:10px;border:1px solid var(--bor);background:var(--sur);color:var(--tx);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;}
+.tab-btn.active{background:var(--forest);color:#fff;border-color:var(--forest);}
+
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.filters select,.filters input{padding:9px 12px;border-radius:10px;border:1px solid var(--bor);font-size:13px;background:#fff;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.card .ptype{font-size:15px;font-weight:700;color:var(--forest);}
+.card .meta{font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.5;}
+.card .price{font-size:18px;font-weight:800;color:var(--leaf);margin-top:8px;}
+.card .farm{font-size:12px;color:var(--tx2);margin-top:6px;font-weight:600;}
+.card .notes{font-size:12px;color:var(--tx3);font-style:italic;margin-top:8px;}
+.card button, .card a.btn{display:inline-block;margin-top:12px;background:var(--forest);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;}
+.card a.wa{background:#25D366;}
+.empty{text-align:center;padding:60px 20px;color:var(--tx3);}
+.empty .icon{font-size:36px;margin-bottom:10px;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,51,32,.55);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 30px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
+@media(min-width:600px){.modal-overlay{align-items:center;}.modal{border-radius:20px;}}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:14px;color:var(--forest);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--bor);font-size:14px;background:var(--bg);}
+.req{color:#DC2626;}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;}
+.btn-forest{background:var(--forest);color:#fff;}
+.btn-outline{background:transparent;color:var(--tx3);border:1px solid var(--bor);}
+.auth-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.auth-tab{flex:1;padding:9px;border-radius:8px;border:1px solid var(--bor);background:var(--bg);font-size:13px;font-weight:700;cursor:pointer;}
+.auth-tab.active{background:var(--forest);color:#fff;border-color:var(--forest);}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--forest);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:300;display:none;}
+.mylist-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bor);font-size:13px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🐟 FishTrack Pro <span style="opacity:.6;font-weight:400;">Marketplace</span></div>
+  <div class="nav-actions">
+    <a href="/" class="home-link">← Home</a>
+    <span id="buyer-status-pill" onclick="onBuyerPillClick()">Sign In</span>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="intro">
+    🏪 Browse fresh catfish and processed fish available from FishTrack Pro farmers, or post what you're looking to buy. Deals are arranged directly between you and the farmer/buyer — this page just makes the introduction. Contacting a seller requires a quick, free buyer account.
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-sell" onclick="switchTab('sell')">🐟 Fish For Sale</button>
+    <button class="tab-btn" id="tab-buy" onclick="switchTab('buy')">🛍️ Buyer Requests</button>
+    <button class="tab-btn" id="tab-mine" onclick="switchTab('mine')">👤 My Buy Requests</button>
+  </div>
+
+  <div id="view-sell">
+    <div class="filters">
+      <select id="filter-product" onchange="renderSellListings()">
+        <option value="">All product types</option>
+      </select>
+      <input type="text" id="filter-location" placeholder="Filter by location..." oninput="renderSellListings()">
+    </div>
+    <div class="grid" id="sell-grid"><div class="empty">Loading listings…</div></div>
+  </div>
+
+  <div id="view-buy" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+      <button class="tab-btn" style="flex:none;background:var(--gold);color:#fff;border-color:var(--gold);" onclick="openPostBuyRequestModal()">+ Post a Buy Request</button>
+    </div>
+    <div class="grid" id="buy-grid"><div class="empty">Loading buyer requests…</div></div>
+  </div>
+
+  <div id="view-mine" style="display:none;">
+    <div id="mine-list"><div class="empty">Sign in as a buyer to see your posted requests.</div></div>
+  </div>
+</div>
+
+<!-- BUYER AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal" onclick="if(event.target===this)closeModal('auth-modal')">
+  <div class="modal">
+    <div class="modal-title">Buyer Account</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <div id="auth-login-view">
+      <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="al-email"></div>
+      <div class="field"><label>Password <span class="req">*</span></label><input type="password" id="al-password"></div>
+      <button class="btn btn-forest" onclick="buyerLogin()">Sign In →</button>
+    </div>
+
+    <div id="auth-register-view" style="display:none;">
+      <div class="field"><label>Full Name <span class="req">*</span></label><input type="text" id="ar-name"></div>
+      <div class="field"><label>Business / Company Name</label><input type="text" id="ar-business" placeholder="Leave blank if individual buyer"></div>
+      <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" id="ar-phone" placeholder="e.g. 08012345678"></div>
+      <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="ar-email"></div>
+      <div class="field"><label>Password <span class="req">*</span></label><input type="password" id="ar-password" placeholder="At least 6 characters"></div>
+      <button class="btn btn-forest" onclick="buyerRegister()">Create Buyer Account →</button>
+    </div>
+
+    <button class="btn btn-outline" onclick="closeModal('auth-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- POST BUY REQUEST MODAL -->
+<div class="modal-overlay" id="buyreq-modal" onclick="if(event.target===this)closeModal('buyreq-modal')">
+  <div class="modal">
+    <div class="modal-title">Post a Buy Request</div>
+    <div class="field"><label>Product Type <span class="req">*</span></label>
+      <select id="br-product"></select>
+    </div>
+    <div class="field"><label>Quantity Wanted (kg) <span class="req">*</span></label><input type="number" id="br-qty"></div>
+    <div class="field"><label>Target Price per kg (₦)</label><input type="number" id="br-price"></div>
+    <div class="field"><label>Location</label><input type="text" id="br-location"></div>
+    <div class="field"><label>Notes</label><textarea id="br-notes" rows="2"></textarea></div>
+    <button class="btn btn-forest" onclick="submitBuyRequest()">Post Request ✓</button>
+    <button class="btn btn-outline" onclick="closeModal('buyreq-modal')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Same public Firebase web config as the main FishTrack Pro app — Firebase
+// web API keys are meant to be public; access is controlled by Firestore
+// security rules (harvestListings/buyRequests: public read, owner-only write;
+// buyers: owner-only read/write).
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCImrn14zzGZE8u8ruhYn2dOMiD6sMFz1U",
+  authDomain: "doha-farms.firebaseapp.com",
+  projectId: "doha-farms",
+  storageBucket: "doha-farms.firebasestorage.app",
+  messagingSenderId: "423700456092",
+  appId: "1:423700456092:web:88dec462aa08ae8af00359",
+  measurementId: "G-ZT7H44DR4C"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+const PRODUCT_LABELS = {
+  'live-catfish':          '🐟 Live Catfish',
+  'smoked-whole-small':    '🔥 Smoked Whole — Small',
+  'smoked-whole-medium':   '🔥 Smoked Whole — Medium',
+  'smoked-whole-big':      '🔥 Smoked Whole — Big',
+  'smoked-whole-jumbo':    '🔥 Smoked Whole — Jumbo',
+  'smoked-whole-bulk':     '🔥 Smoked Whole — (Unsorted)',
+  'smoked-head':           '🔪 Smoked Head',
+  'smoked-tail':           '🔪 Smoked Tail',
+  'smoked-middle':         '🔪 Smoked Middle',
+  'smoked-mixed':          '🔪 Smoked Mixed',
+  'smoked-cutlets-bulk':   '🔪 Smoked Cutlets — (Unsorted)',
+  'other':                 '📦 Other',
+};
+const fmt = n => '₦' + Math.round(n||0).toLocaleString('en-NG');
+
+let currentBuyer = null;      // firebase auth user, once signed in
+let currentBuyerProfile = null; // buyers/{uid} doc data
+let allSellListings = [];
+let allBuyRequests = [];
+let myBuyRequestsListener = null;
+
+// Populate product filters/selects
+(function initProductOptions(){
+  const filterSel = document.getElementById('filter-product');
+  const brSel = document.getElementById('br-product');
+  Object.entries(PRODUCT_LABELS).forEach(([val, label]) => {
+    const o1 = document.createElement('option'); o1.value = val; o1.textContent = label; filterSel.appendChild(o1);
+    const o2 = document.createElement('option'); o2.value = val; o2.textContent = label; brSel.appendChild(o2);
+  });
+})();
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function switchTab(tab) {
+  document.getElementById('tab-sell').classList.toggle('active', tab === 'sell');
+  document.getElementById('tab-buy').classList.toggle('active', tab === 'buy');
+  document.getElementById('tab-mine').classList.toggle('active', tab === 'mine');
+  document.getElementById('view-sell').style.display = tab === 'sell' ? 'block' : 'none';
+  document.getElementById('view-buy').style.display  = tab === 'buy'  ? 'block' : 'none';
+  document.getElementById('view-mine').style.display = tab === 'mine' ? 'block' : 'none';
+  if (tab === 'mine') renderMyBuyRequests();
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('auth-tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('auth-login-view').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('auth-register-view').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function onBuyerPillClick() {
+  if (currentBuyer) { auth.signOut(); }
+  else { switchAuthTab('login'); openModal('auth-modal'); }
+}
+
+// ── AUTH STATE ──
+auth.onAuthStateChanged(async (user) => {
+  currentBuyer = user;
+  const pill = document.getElementById('buyer-status-pill');
+  if (user) {
+    try {
+      const doc = await db.collection('buyers').doc(user.uid).get();
+      currentBuyerProfile = doc.exists ? doc.data() : null;
+    } catch (e) { currentBuyerProfile = null; }
+    pill.textContent = (currentBuyerProfile && currentBuyerProfile.name) ? `${currentBuyerProfile.name} · Sign Out` : 'Sign Out';
+  } else {
+    currentBuyerProfile = null;
+    pill.textContent = 'Sign In';
+  }
+  renderSellListings();
+  if (document.getElementById('view-mine').style.display !== 'none') renderMyBuyRequests();
+});
+
+// ── LIGHT KYC BUYER REGISTER / LOGIN ──
+async function buyerRegister() {
+  const name = document.getElementById('ar-name').value.trim();
+  const business = document.getElementById('ar-business').value.trim();
+  const phone = document.getElementById('ar-phone').value.trim();
+  const email = document.getElementById('ar-email').value.trim();
+  const password = document.getElementById('ar-password').value;
+
+  if (!name || !phone || !email || !password) return showToast('Fill all required fields');
+  if (password.length < 6) return showToast('Password must be at least 6 characters');
+
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    await db.collection('buyers').doc(cred.user.uid).set({
+      name, businessName: business, phone, email,
+      verified: true, // light KYC — self-declared, no manual review at this stage
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    closeModal('auth-modal');
+    showToast(`Welcome, ${name} — you can now contact sellers and post buy requests.`);
+  } catch (e) {
+    console.error(e);
+    showToast(e.message || 'Could not create account');
+  }
+}
+
+async function buyerLogin() {
+  const email = document.getElementById('al-email').value.trim();
+  const password = document.getElementById('al-password').value;
+  if (!email || !password) return showToast('Enter email and password');
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    closeModal('auth-modal');
+    showToast('Signed in');
+  } catch (e) {
+    console.error(e);
+    showToast(e.message || 'Sign in failed');
+  }
+}
+
+function requireBuyerAuth() {
+  if (!currentBuyer) {
+    showToast('Sign in as a buyer first');
+    switchAuthTab('login');
+    openModal('auth-modal');
+    return false;
+  }
+  return true;
+}
+
+function normalizePhoneForWa(phone) {
+  let p = (phone || '').replace(/[^0-9+]/g, '');
+  if (p.startsWith('0')) p = '234' + p.slice(1);
+  if (p.startsWith('+')) p = p.slice(1);
+  return p;
+}
+
+// ── SELL LISTINGS (public read, contact gated behind buyer auth) ──
+db.collection('harvestListings').where('status', '==', 'active').orderBy('createdAt', 'desc').limit(100)
+  .onSnapshot(snap => {
+    allSellListings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSellListings();
+  }, err => {
+    console.error('Sell listings error:', err);
+    document.getElementById('sell-grid').innerHTML = `<div class="empty">Could not load listings right now.</div>`;
+  });
+
+function renderSellListings() {
+  const productFilter = document.getElementById('filter-product').value;
+  const locFilter = (document.getElementById('filter-location').value || '').toLowerCase();
+  let list = allSellListings;
+  if (productFilter) list = list.filter(l => l.productType === productFilter);
+  if (locFilter) list = list.filter(l => (l.location || '').toLowerCase().includes(locFilter));
+
+  const grid = document.getElementById('sell-grid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty"><div class="icon">🐟</div>No listings match right now. Check back soon.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(l => {
+    const contactUnlocked = !!currentBuyer;
+    const waLink = contactUnlocked && l.phone ? `https://wa.me/${normalizePhoneForWa(l.phone)}` : null;
+    return `<div class="card">
+      <div class="ptype">${PRODUCT_LABELS[l.productType] || l.productType}</div>
+      <div class="meta">${l.quantityKg||0}kg available · Ready ${l.dateAvailable||''} ${l.location ? '· 📍 ' + l.location : ''}</div>
+      <div class="price">${fmt(l.pricePerKg)}/kg</div>
+      <div class="farm">${l.farmName || 'FishTrack Pro Farmer'}</div>
+      ${l.notes ? `<div class="notes">"${l.notes}"</div>` : ''}
+      ${contactUnlocked
+        ? (waLink ? `<a class="btn wa" href="${waLink}" target="_blank" rel="noopener">💬 Contact Seller</a>` : `<div class="meta" style="margin-top:10px;">No phone on file for this listing.</div>`)
+        : `<button onclick="requireBuyerAuth()">🔒 Sign in to Contact</button>`}
+    </div>`;
+  }).join('');
+}
+
+// ── BUY REQUESTS (public read — anyone can see and contact a buyer) ──
+db.collection('buyRequests').where('status', '==', 'active').orderBy('createdAt', 'desc').limit(100)
+  .onSnapshot(snap => {
+    allBuyRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderBuyRequests();
+  }, err => {
+    console.error('Buy requests error:', err);
+    document.getElementById('buy-grid').innerHTML = `<div class="empty">Could not load buy requests right now.</div>`;
+  });
+
+function renderBuyRequests() {
+  const grid = document.getElementById('buy-grid');
+  if (!allBuyRequests.length) {
+    grid.innerHTML = `<div class="empty"><div class="icon">🛍️</div>No open buy requests right now.</div>`;
+    return;
+  }
+  grid.innerHTML = allBuyRequests.map(r => {
+    const waLink = r.phone ? `https://wa.me/${normalizePhoneForWa(r.phone)}` : null;
+    return `<div class="card">
+      <div class="ptype">${PRODUCT_LABELS[r.productType] || r.productType || 'Fish'} — wants ${r.quantityWantedKg||'?'}kg</div>
+      <div class="meta">${r.businessName || r.buyerName || 'Buyer'} ${r.targetPrice ? '· Target ' + fmt(r.targetPrice) + '/kg' : ''} ${r.location ? '· 📍 ' + r.location : ''}</div>
+      ${r.notes ? `<div class="notes">"${r.notes}"</div>` : ''}
+      ${waLink ? `<a class="btn wa" href="${waLink}" target="_blank" rel="noopener">💬 Contact Buyer</a>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── POST A BUY REQUEST (buyer only) ──
+function openPostBuyRequestModal() {
+  if (!requireBuyerAuth()) return;
+  document.getElementById('br-qty').value = '';
+  document.getElementById('br-price').value = '';
+  document.getElementById('br-location').value = '';
+  document.getElementById('br-notes').value = '';
+  openModal('buyreq-modal');
+}
+
+async function submitBuyRequest() {
+  if (!requireBuyerAuth()) return;
+  const productType = document.getElementById('br-product').value;
+  const quantityWantedKg = parseFloat(document.getElementById('br-qty').value);
+  const targetPrice = parseFloat(document.getElementById('br-price').value) || null;
+  const location = document.getElementById('br-location').value.trim();
+  const notes = document.getElementById('br-notes').value.trim();
+
+  if (!quantityWantedKg || quantityWantedKg <= 0) return showToast('Enter a valid quantity');
+
+  try {
+    await db.collection('buyRequests').add({
+      buyerId: currentBuyer.uid,
+      buyerName: currentBuyerProfile ? currentBuyerProfile.name : '',
+      businessName: currentBuyerProfile ? currentBuyerProfile.businessName : '',
+      phone: currentBuyerProfile ? currentBuyerProfile.phone : '',
+      productType, quantityWantedKg, targetPrice, location, notes,
+      status: 'active',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    closeModal('buyreq-modal');
+    showToast('Buy request posted');
+  } catch (e) {
+    console.error(e);
+    showToast('Could not post request. Try again.');
+  }
+}
+
+function renderMyBuyRequests() {
+  const el = document.getElementById('mine-list');
+  if (!currentBuyer) { el.innerHTML = `<div class="empty">Sign in as a buyer to see your posted requests.</div>`; return; }
+  if (myBuyRequestsListener) { myBuyRequestsListener(); myBuyRequestsListener = null; }
+  myBuyRequestsListener = db.collection('buyRequests').where('buyerId', '==', currentBuyer.uid).orderBy('createdAt', 'desc')
+    .onSnapshot(snap => {
+      const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!reqs.length) { el.innerHTML = `<div class="empty">You haven't posted any buy requests yet.</div>`; return; }
+      el.innerHTML = reqs.map(r => `<div class="mylist-item">
+        <div>${PRODUCT_LABELS[r.productType]||r.productType} — ${r.quantityWantedKg}kg <span style="color:var(--tx3);">(${r.status})</span></div>
+        ${r.status === 'active' ? `<button style="background:none;border:1px solid var(--bor);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="closeBuyRequest('${r.id}')">Close</button>` : ''}
+      </div>`).join('');
+    });
+}
+
+async function closeBuyRequest(id) {
+  try {
+    await db.collection('buyRequests').doc(id).update({ status: 'closed' });
+    showToast('Request closed');
+  } catch (e) { console.error(e); showToast('Could not close request'); }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,11 @@
 [functions]
   directory = "netlify/functions"
 
+# Monthly AI Review — runs automatically at 06:00 UTC on the 1st of every
+# month, independent of any farmer logging in. See monthly-review-cron.js.
+[functions."monthly-review-cron"]
+  schedule = "0 6 1 * *"
+
 [[headers]]
   for = "/*"
   [headers.values]

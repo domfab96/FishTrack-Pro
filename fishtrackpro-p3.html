@@ -840,6 +840,9 @@ input,select,textarea,button{font-family:inherit;}
       <button class="sidebar-item" id="snav-harvest" onclick="switchScreen('harvest',this)">
         <span class="s-icon">🎯</span><span class="s-label" id="snav-harvest-lbl">Harvest</span>
       </button>
+      <button class="sidebar-item" id="snav-marketplace" onclick="switchScreen('marketplace',this);renderMarketplaceScreen();">
+        <span class="s-icon">🏪</span><span class="s-label" id="snav-marketplace-lbl">Marketplace</span>
+      </button>
       <button class="sidebar-item" id="snav-sensors" onclick="switchScreen('sensors',this);renderSensorsScreen();" style="position:relative;background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(14,165,233,.08));border:1px solid rgba(56,189,248,.2);">
         <span class="s-icon">📡</span>
         <span class="s-label" id="snav-sensors-lbl" style="color:#7DD3FC;font-weight:700;">IoT Sensors</span>
@@ -1222,6 +1225,27 @@ input,select,textarea,button{font-family:inherit;}
         <div class="sec-label" style="margin:0;">Harvest Records <span id="hv-count-label" style="font-weight:400;color:var(--tx3);"></span></div>
       </div>
       <div id="hv-history-list"></div>
+    </div>
+
+    <!-- ═══════════════ MARKETPLACE SCREEN (Phase 8) ═══════════════ -->
+    <div class="screen" id="screen-marketplace">
+      <div style="background:var(--bl);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#0C5A8C;margin-bottom:16px;">
+        🏪 Post your available harvest for buyers to see, or browse what buyers are looking for. Deals are arranged directly with the buyer — a <span id="mp-rate-label"></span> platform commission applies once you mark a listing sold.
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="mp-tab active" id="mp-tab-mine" onclick="switchMarketplaceTab('mine')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--bor);background:var(--forest);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">My Listings</button>
+        <button class="mp-tab" id="mp-tab-buyers" onclick="switchMarketplaceTab('buyers')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--bor);background:var(--sur);color:var(--tx);font-weight:700;font-size:13px;cursor:pointer;">Buy Requests</button>
+      </div>
+
+      <div id="mp-mine-view">
+        <div id="mp-mine-list">Loading your listings…</div>
+      </div>
+
+      <div id="mp-buyers-view" style="display:none;">
+        <div style="font-size:12px;color:var(--tx3);margin-bottom:10px;">Buyers looking to purchase — reach out directly.</div>
+        <div id="mp-buyers-list">Loading buy requests…</div>
+      </div>
     </div>
 
     <!-- ═══════════════ AI ASSISTANT SCREEN ═══════════════ -->
@@ -1753,6 +1777,66 @@ input,select,textarea,button{font-family:inherit;}
   </div>
 </div>
 
+<!-- MARKETPLACE: NEW LISTING MODAL -->
+<div class="modal-overlay" id="listing-modal" onclick="if(event.target===this)closeModal('listing-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">List Harvest for Sale</div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:14px;">This posts publicly on the FishTrack Pro marketplace so buyers can find you. It does not affect your Sales or Inventory records — record the actual sale separately once it closes.</div>
+
+    <div class="field"><label>Product Type <span class="req">*</span></label>
+      <select id="ls-product">
+        <optgroup label="🐟 Live Fish">
+          <option value="live-catfish">🐟 Live Catfish</option>
+        </optgroup>
+        <optgroup label="🔥 Smoked — Whole">
+          <option value="smoked-whole-small">🔥 Smoked Whole — Small</option>
+          <option value="smoked-whole-medium">🔥 Smoked Whole — Medium</option>
+          <option value="smoked-whole-big">🔥 Smoked Whole — Big</option>
+          <option value="smoked-whole-jumbo">🔥 Smoked Whole — Jumbo</option>
+          <option value="smoked-whole-bulk">🔥 Smoked Whole — (Unsorted)</option>
+        </optgroup>
+        <optgroup label="🔪 Smoked — Cutlets">
+          <option value="smoked-head">🔪 Smoked Head</option>
+          <option value="smoked-tail">🔪 Smoked Tail</option>
+          <option value="smoked-middle">🔪 Smoked Middle</option>
+          <option value="smoked-mixed">🔪 Smoked Mixed (Tail &amp; Middle)</option>
+          <option value="smoked-cutlets-bulk">🔪 Smoked Cutlets — (Unsorted)</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option value="other">📦 Other</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="field-row">
+      <div class="field"><label>Quantity (kg) <span class="req">*</span></label><input type="number" id="ls-kg" step="0.1" placeholder="e.g. 100"></div>
+      <div class="field"><label>Price per kg (₦) <span class="req">*</span></label><input type="number" id="ls-price" placeholder="e.g. 1800"></div>
+    </div>
+
+    <div class="field"><label>Date Available <span class="req">*</span></label><input type="date" id="ls-date"></div>
+    <div class="field"><label>Location</label><input type="text" id="ls-location" placeholder="e.g. Dei-dei, Abuja"></div>
+    <div class="field"><label>Contact Phone (shown to verified buyers) <span class="req">*</span></label><input type="tel" id="ls-phone" placeholder="e.g. 08012345678"></div>
+    <div class="field"><label>Notes</label><input type="text" id="ls-notes" placeholder="Any extra info for buyers..."></div>
+
+    <button class="btn btn-forest" onclick="submitListing()">Post Listing ✓</button>
+    <button class="btn btn-outline" onclick="closeModal('listing-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- MARKETPLACE: MARK SOLD MODAL -->
+<div class="modal-overlay" id="mark-sold-modal" onclick="if(event.target===this)closeModal('mark-sold-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mark Listing Sold</div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:14px;">Enter the final agreed sale price. FishTrack Pro will calculate the <span id="ms-rate-label"></span> platform commission and send you a payment link.</div>
+    <div class="field"><label>Final Sale Price (₦) <span class="req">*</span></label><input type="number" id="ms-price" placeholder="e.g. 180000"></div>
+    <div id="ms-commission-preview" class="auto-calc" style="margin-bottom:12px;"></div>
+    <button class="btn btn-forest" onclick="confirmMarkSold()">Confirm Sale ✓</button>
+    <button class="btn btn-outline" onclick="closeModal('mark-sold-modal')">Cancel</button>
+  </div>
+</div>
+
 <!-- FISH STOCK SPLIT MODAL -->
 <div class="modal-overlay" id="fish-split-modal" onclick="if(event.target===this)closeModal('fish-split-modal')">
   <div class="modal">
@@ -1872,6 +1956,21 @@ const PLAN_LIMITS = {
   enterprise: { ponds: 999, label: 'Enterprise',   price: 15000 },
 };
 const TRIAL_DAYS = 14;
+
+// ══════════════════════════════════════════════════════
+// MARKETPLACE CONFIG (Phase 8 — Harvest Listing / Produce Aggregation)
+// Public Jiji-style board: harvestListings (farmer sell ads, public collection)
+// + buyRequests (buyer want-ads, public collection). Farmers are already
+// authenticated FishTrackPro users — no extra signup needed to list or to
+// contact a buyer. Buyers are new/unverified visitors, so they go through a
+// light KYC signup (name, phone, business name) before they can contact a
+// seller or post a want-ad. Real payment for the harvest sale itself happens
+// off-platform (bank transfer/cash, as is normal in Nigerian fish trading) —
+// only the platform's own commission is collected in-app, via a one-off
+// Paystack payment link, reusing the existing live Paystack integration
+// (no subaccounts/split payments needed).
+// ══════════════════════════════════════════════════════
+const MARKETPLACE_COMMISSION_RATE = 0.03; // 3% — adjustable within the 2–5% range
 
 // ── STATE ──
 let db = null;
@@ -4083,6 +4182,7 @@ const PAGE_META = {
   expenses:  { title:'Expenses',       addLabel:'+ Expense',         addFn:'openExpenseModal()',ownerOnly:true  },
   inventory: { title:'Inventory',      addLabel:'+ Supply',          addFn:'openSupplyModal()', ownerOnly:true  },
   harvest:   { title:'Harvest',        addLabel:'+ Record Harvest',  addFn:'openHarvestModal(null)', ownerOnly:true },
+  marketplace: { title:'Marketplace',  addLabel:'+ New Listing',     addFn:'openListingModal()', ownerOnly:true },
   reports:   { title:'Reports',        addLabel:null },
   ai:        { title:'🤖 AI Assistant', addLabel:null },
 };
@@ -4116,6 +4216,7 @@ function switchScreen(name) {
   if (name === 'sales')     renderSalesScreen();
   if (name === 'inventory') renderInventoryScreen();
   if (name === 'harvest')   renderHarvestScreen();
+  if (name === 'marketplace') renderMarketplaceScreen();
   if (name === 'ai')        { initAIScreen(); }
   if (name === 'inbox')     { renderInboxScreen(); }
   // Show/hide AI input bar and FAB
@@ -5511,6 +5612,250 @@ function renderHarvestScreen() {
   }).join('');
 }
 
+// ══════════════════════════════════════════════════════
+// MARKETPLACE (Phase 8) — public harvestListings + buyRequests collections
+// Farmer side: create/manage listings, mark sold, get commission payment link.
+// ══════════════════════════════════════════════════════
+const MARKETPLACE_PRODUCT_LABELS = {
+  'live-catfish':          '🐟 Live Catfish',
+  'smoked-whole-small':    '🔥 Smoked Whole — Small',
+  'smoked-whole-medium':   '🔥 Smoked Whole — Medium',
+  'smoked-whole-big':      '🔥 Smoked Whole — Big',
+  'smoked-whole-jumbo':    '🔥 Smoked Whole — Jumbo',
+  'smoked-whole-bulk':     '🔥 Smoked Whole — (Unsorted)',
+  'smoked-head':           '🔪 Smoked Head',
+  'smoked-tail':           '🔪 Smoked Tail',
+  'smoked-middle':         '🔪 Smoked Middle',
+  'smoked-mixed':          '🔪 Smoked Mixed',
+  'smoked-cutlets-bulk':   '🔪 Smoked Cutlets — (Unsorted)',
+  'other':                 '📦 Other',
+};
+
+let _mpListingsListener = null;
+let _mpBuyReqListener = null;
+let _mpActiveTab = 'mine';
+let _mpMarkSoldListingId = null;
+
+function marketplaceListingsCol() { return db ? db.collection('harvestListings') : null; }
+function marketplaceBuyReqCol()   { return db ? db.collection('buyRequests') : null; }
+
+function switchMarketplaceTab(tab) {
+  _mpActiveTab = tab;
+  document.getElementById('mp-tab-mine').classList.toggle('active', tab === 'mine');
+  document.getElementById('mp-tab-buyers').classList.toggle('active', tab === 'buyers');
+  document.getElementById('mp-tab-mine').style.background   = tab === 'mine'   ? 'var(--forest)' : 'var(--sur)';
+  document.getElementById('mp-tab-mine').style.color        = tab === 'mine'   ? '#fff' : 'var(--tx)';
+  document.getElementById('mp-tab-buyers').style.background = tab === 'buyers' ? 'var(--forest)' : 'var(--sur)';
+  document.getElementById('mp-tab-buyers').style.color      = tab === 'buyers' ? '#fff' : 'var(--tx)';
+  document.getElementById('mp-mine-view').style.display   = tab === 'mine'   ? 'block' : 'none';
+  document.getElementById('mp-buyers-view').style.display = tab === 'buyers' ? 'block' : 'none';
+}
+
+function renderMarketplaceScreen() {
+  const rateLabel = Math.round(MARKETPLACE_COMMISSION_RATE * 100) + '%';
+  const r1 = document.getElementById('mp-rate-label'); if (r1) r1.textContent = rateLabel;
+  const r2 = document.getElementById('ms-rate-label');  if (r2) r2.textContent = rateLabel;
+  if (!currentUser || !db) return;
+
+  if (_mpListingsListener) { _mpListingsListener(); _mpListingsListener = null; }
+  _mpListingsListener = marketplaceListingsCol()
+    .where('farmerId', '==', currentUser.uid)
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(snap => {
+      const listings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderMyListings(listings);
+    }, err => {
+      console.error('Marketplace listings error:', err);
+      const el = document.getElementById('mp-mine-list');
+      if (el) el.innerHTML = `<div class="empty-state"><div class="empty-text">Could not load listings. Pull to refresh.</div></div>`;
+    });
+
+  if (_mpBuyReqListener) { _mpBuyReqListener(); _mpBuyReqListener = null; }
+  _mpBuyReqListener = marketplaceBuyReqCol()
+    .where('status', '==', 'active')
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .onSnapshot(snap => {
+      const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderBuyRequestsForFarmer(reqs);
+    }, err => {
+      console.error('Buy requests error:', err);
+      const el = document.getElementById('mp-buyers-list');
+      if (el) el.innerHTML = `<div class="empty-state"><div class="empty-text">Could not load buy requests. Pull to refresh.</div></div>`;
+    });
+}
+
+function renderMyListings(listings) {
+  const el = document.getElementById('mp-mine-list');
+  if (!el) return;
+  if (!listings.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-text">No listings yet.<br>Tap + New Listing to post your available harvest.</div></div>`;
+    return;
+  }
+  el.innerHTML = listings.map(l => {
+    const statusPill = l.status === 'sold'
+      ? `<span class="pill pill-green">✓ Sold</span>`
+      : l.status === 'expired' ? `<span class="pill pill-amber">Expired</span>` : `<span class="pill pill-blue">Active</span>`;
+    const commissionBlock = l.status === 'sold' ? `
+      <div style="background:var(--foam);border-radius:var(--rs);padding:10px 14px;margin:0 16px 12px;font-size:13px;color:var(--forest);">
+        Sold for ${fmt(l.soldPrice||0)} · Commission owed: <strong>${fmt(l.commissionAmount||0)}</strong>
+        ${l.paymentLink ? `<div style="margin-top:6px;"><a href="${l.paymentLink}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;">Pay commission →</a></div>` : ''}
+      </div>` : '';
+    return `<div style="background:var(--sur);border-radius:var(--r);border:1px solid var(--bor);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);">
+      <div style="padding:14px 16px 8px;display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:15px;font-weight:700;">${MARKETPLACE_PRODUCT_LABELS[l.productType] || l.productType}</div>
+          <div style="font-size:12px;color:var(--tx3);">${(l.quantityKg||0)}kg · ${fmt(l.pricePerKg||0)}/kg · Available ${l.dateAvailable||''}</div>
+        </div>
+        ${statusPill}
+      </div>
+      ${l.location ? `<div style="padding:0 16px 8px;font-size:12px;color:var(--tx3);">📍 ${l.location}</div>` : ''}
+      ${commissionBlock}
+      ${l.status === 'active' ? `<div style="padding:0 16px 14px;"><button class="btn-sm" style="background:var(--forest);color:#fff;border:none;" onclick="openMarkSoldModal('${l.id}')">Mark as Sold</button></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderBuyRequestsForFarmer(reqs) {
+  const el = document.getElementById('mp-buyers-list');
+  if (!el) return;
+  if (!reqs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🛍️</div><div class="empty-text">No active buy requests right now.</div></div>`;
+    return;
+  }
+  el.innerHTML = reqs.map(r => {
+    const waLink = r.phone ? `https://wa.me/${normalizePhoneForWa(r.phone)}` : null;
+    return `<div style="background:var(--sur);border-radius:var(--r);border:1px solid var(--bor);margin-bottom:14px;padding:14px 16px;box-shadow:var(--shadow);">
+      <div style="font-size:15px;font-weight:700;">${MARKETPLACE_PRODUCT_LABELS[r.productType] || r.productType || 'Fish'} — wants ${r.quantityWantedKg||'?'}kg</div>
+      <div style="font-size:12px;color:var(--tx3);margin-top:2px;">${r.businessName || r.buyerName || 'Buyer'} ${r.targetPrice ? '· Target ' + fmt(r.targetPrice) + '/kg' : ''} ${r.location ? '· 📍 ' + r.location : ''}</div>
+      ${r.notes ? `<div style="font-size:12px;color:var(--tx3);font-style:italic;margin-top:6px;">"${r.notes}"</div>` : ''}
+      ${waLink ? `<a href="${waLink}" target="_blank" rel="noopener" class="btn-sm" style="display:inline-block;margin-top:10px;background:#25D366;color:#fff;border:none;text-decoration:none;">💬 Contact via WhatsApp</a>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function normalizePhoneForWa(phone) {
+  let p = (phone || '').replace(/[^0-9+]/g, '');
+  if (p.startsWith('0')) p = '234' + p.slice(1);
+  if (p.startsWith('+')) p = p.slice(1);
+  return p;
+}
+
+function openListingModal() {
+  document.getElementById('ls-product').value = 'live-catfish';
+  document.getElementById('ls-kg').value = '';
+  document.getElementById('ls-price').value = '';
+  document.getElementById('ls-date').value = todayStr();
+  document.getElementById('ls-location').value = farmData.settings.location || '';
+  document.getElementById('ls-phone').value = localStorage.getItem('ftp_mp_phone') || '';
+  document.getElementById('ls-notes').value = '';
+  openModal('listing-modal');
+}
+
+async function submitListing() {
+  const productType = document.getElementById('ls-product').value;
+  const quantityKg = parseFloat(document.getElementById('ls-kg').value);
+  const pricePerKg = parseFloat(document.getElementById('ls-price').value);
+  const dateAvailable = document.getElementById('ls-date').value;
+  const location = document.getElementById('ls-location').value.trim();
+  const phone = document.getElementById('ls-phone').value.trim();
+  const notes = document.getElementById('ls-notes').value.trim();
+
+  if (!quantityKg || quantityKg <= 0) return showToast('Enter a valid quantity', 'error');
+  if (!pricePerKg || pricePerKg <= 0) return showToast('Enter a valid price per kg', 'error');
+  if (!dateAvailable) return showToast('Select the date available', 'error');
+  if (!phone) return showToast('Enter a contact phone number', 'error');
+  if (!currentUser || !db) return showToast('Not connected — try again', 'error');
+
+  try {
+    await marketplaceListingsCol().add({
+      farmerId: currentUser.uid,
+      farmName: farmData.settings.farmName || 'FishTrack Pro Farmer',
+      productType, quantityKg, pricePerKg, dateAvailable, location, phone, notes,
+      status: 'active',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    localStorage.setItem('ftp_mp_phone', phone);
+    closeModal('listing-modal');
+    showToast('Listing posted to the marketplace', 'success');
+  } catch (e) {
+    console.error('Listing post error:', e);
+    showToast('Could not post listing. Try again.', 'error');
+  }
+}
+
+function openMarkSoldModal(listingId) {
+  _mpMarkSoldListingId = listingId;
+  document.getElementById('ms-price').value = '';
+  document.getElementById('ms-commission-preview').textContent = '';
+  document.getElementById('ms-price').oninput = () => {
+    const v = parseFloat(document.getElementById('ms-price').value) || 0;
+    const commission = v * MARKETPLACE_COMMISSION_RATE;
+    document.getElementById('ms-commission-preview').textContent = v > 0
+      ? `Commission owed (${Math.round(MARKETPLACE_COMMISSION_RATE*100)}%): ${fmt(commission)}` : '';
+  };
+  openModal('mark-sold-modal');
+}
+
+async function confirmMarkSold() {
+  const listingId = _mpMarkSoldListingId;
+  const soldPrice = parseFloat(document.getElementById('ms-price').value);
+  if (!soldPrice || soldPrice <= 0) return showToast('Enter the final sale price', 'error');
+  if (!listingId || !currentUser || !db) return;
+
+  const commissionAmount = Math.round(soldPrice * MARKETPLACE_COMMISSION_RATE);
+  const reference = `mp-${listingId}-${Date.now()}`;
+
+  try {
+    let paymentLink = null;
+    try {
+      const resp = await fetch('/.netlify/functions/create-payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: currentUser.email,
+          amountNaira: commissionAmount,
+          reference,
+          metadata: { listingId, farmerId: currentUser.uid, type: 'marketplace_commission' },
+        }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.authorization_url) paymentLink = data.authorization_url;
+    } catch (linkErr) {
+      console.error('Payment link error:', linkErr);
+    }
+
+    await marketplaceListingsCol().doc(listingId).update({
+      status: 'sold',
+      soldPrice,
+      soldAt: firebase.firestore.FieldValue.serverTimestamp(),
+      commissionAmount,
+      commissionStatus: paymentLink ? 'invoiced' : 'pending',
+      paymentLink: paymentLink || null,
+    });
+
+    // Notify the farmer in their own inbox with the payment link
+    await db.collection('users').doc(currentUser.uid).collection('notifications').add({
+      type: 'marketplace_commission',
+      title: '🏪 Marketplace Commission Due',
+      message: paymentLink
+        ? `Your listing sold for ${fmt(soldPrice)}. Platform commission of ${fmt(commissionAmount)} is due — tap the link to pay.`
+        : `Your listing sold for ${fmt(soldPrice)}. Platform commission of ${fmt(commissionAmount)} is due. A payment link could not be generated automatically — admin will follow up.`,
+      paymentLink: paymentLink || null,
+      sentAt: new Date().toISOString(),
+      read: false,
+      from: 'system',
+      priority: 'medium',
+    });
+
+    closeModal('mark-sold-modal');
+    showToast(paymentLink ? 'Marked sold — payment link sent to your Inbox' : 'Marked sold — commission logged', 'success');
+  } catch (e) {
+    console.error('Mark sold error:', e);
+    showToast('Could not complete this. Try again.', 'error');
+  }
+}
+
 
 function renderSalesScreen() {
   const sales = farmData.sales || [];
@@ -6153,6 +6498,20 @@ async function runMonthlyReview() {
   // Only generate on 1st–5th of month (grace window in case user didn't log in on 1st)
   const dayOfMonth = now.getDate();
   if (dayOfMonth > 5) return;
+
+  // The monthly-review-cron scheduled function (netlify/functions/monthly-review-cron.js)
+  // already generates this automatically at 06:00 UTC on the 1st. This client-side path
+  // only exists as a fallback — check Firestore first so we don't waste an AI call
+  // regenerating a review that already landed in the Inbox.
+  try {
+    const notifId = `monthly-review-${thisMonth}`;
+    const existing = await db.collection('users').doc(currentUser.uid)
+      .collection('notifications').doc(notifId).get();
+    if (existing.exists) {
+      localStorage.setItem(reviewKey, thisMonth);
+      return;
+    }
+  } catch (e) { /* if this check fails, fall through and try generating anyway */ }
 
   // Build comprehensive farm summary for AI
   const ponds = getPonds();

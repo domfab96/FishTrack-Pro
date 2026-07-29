@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'olufemidominic@gmail.com';
+    }
+    function isAuth() {
+      return request.auth != null;
+    }
+    match /farmData/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /business/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /farm/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /users/{userId} {
+      allow read, write: if isAdmin() || request.auth.uid == userId;
+      match /farm/{doc} {
+        allow read: if isAdmin() || request.auth.uid == userId || isAuth();
+        allow write: if isAdmin() || request.auth.uid == userId;
+      }
+      match /notifications/{notifId} {
+        allow read: if isAdmin() || request.auth.uid == userId || isAuth();
+        allow update: if isAdmin() || request.auth.uid == userId;
+        allow create: if isAdmin();
+        allow delete: if isAdmin() || request.auth.uid == userId;
+        match /replies/{replyId} {
+          allow read, write: if isAdmin() || request.auth.uid == userId;
+        }
+      }
+      match /staffAccounts/{staffDocId} {
+        allow read: if isAdmin() || request.auth.uid == userId || isAuth();
+        allow write: if isAdmin() || request.auth.uid == userId;
+      }
+      match /sensorReadings/{pondId} {
+        allow read: if isAdmin() || request.auth.uid == userId || isAuth();
+        allow write: if isAdmin() || request.auth.uid == userId;
+      }
+      match /sensorHistory/{pondId} {
+        allow read: if isAdmin() || request.auth.uid == userId;
+        allow write: if isAdmin() || request.auth.uid == userId;
+        match /readings/{readingId} {
+          allow read: if isAdmin() || request.auth.uid == userId;
+          allow write: if isAdmin() || request.auth.uid == userId;
+        }
+      }
+    }
+    match /admin_messages/{docId} {
+      allow create: if isAuth();
+      allow read, write: if isAdmin();
+    }
+    match /staffIdIndex/{staffId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+
+    // ══════════════════════════════════════════════════════
+    // MARKETPLACE (Phase 8) — Harvest Listing / Produce Aggregation
+    // Public Jiji-style board. Farmers are already-authenticated FishTrack Pro
+    // users; buyers are a separate, lighter-KYC account type created from
+    // marketplace.html. Listings themselves are public read so the board works
+    // without login — writes are restricted to the doc's own owner (or admin).
+    // ══════════════════════════════════════════════════════
+    match /harvestListings/{listingId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.farmerId == request.auth.uid;
+      allow update, delete: if isAdmin() || (isAuth() && resource.data.farmerId == request.auth.uid);
+    }
+
+    match /buyRequests/{requestId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.buyerId == request.auth.uid;
+      allow update, delete: if isAdmin() || (isAuth() && resource.data.buyerId == request.auth.uid);
+    }
+
+    match /buyers/{buyerId} {
+      allow read: if isAdmin() || (isAuth() && request.auth.uid == buyerId);
+      allow create: if isAuth() && request.auth.uid == buyerId;
+      allow update: if isAdmin() || (isAuth() && request.auth.uid == buyerId);
+    }
+  }
+}
