@@ -1378,6 +1378,24 @@ input,select,textarea,button{font-family:inherit;}
         </select>
       </div>
     </div>
+    <div class="field-row">
+      <div class="field"><label>Water Source</label>
+        <select id="ap-water-source">
+          <option value="Borehole">Borehole</option>
+          <option value="River">River</option>
+          <option value="Municipal">Municipal</option>
+          <option value="Rainwater">Rainwater</option>
+        </select>
+      </div>
+      <div class="field"><label>Power Backup</label>
+        <select id="ap-power-backup">
+          <option value="Solar + Inverter">Solar + Inverter</option>
+          <option value="Generator">Generator</option>
+          <option value="None">None</option>
+        </select>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin:-6px 0 12px;">Used for the upcoming Farm Credit Profile — helps lenders assess infrastructure reliability.</div>
     <button class="btn btn-forest" onclick="addPond()">Add Pond</button>
     <button class="btn btn-outline" onclick="closeModal('add-pond-modal')">Cancel</button>
   </div>
@@ -5086,6 +5104,10 @@ async function addPond() {
     fishType: document.getElementById('ap-species')?.value || 'catfish',
     liner: document.getElementById('ap-liner').value,
     size, capacity,
+    // Phase 5 — Credit Scoring Engine Stage 1: infrastructure fields for the
+    // future irrScore (Infrastructure Reliability Metric) calculation.
+    waterSource: document.getElementById('ap-water-source')?.value || 'Borehole',
+    powerBackup: document.getElementById('ap-power-backup')?.value || 'None',
     addedDate: todayStr()
   };
   await saveData(); render(); closeModal('add-pond-modal');
@@ -5094,6 +5116,8 @@ async function addPond() {
   document.getElementById('ap-size').value = '';
   document.getElementById('ap-capacity').value = '';
   if (document.getElementById('ap-species')) document.getElementById('ap-species').value = 'catfish';
+  if (document.getElementById('ap-water-source')) document.getElementById('ap-water-source').value = 'Borehole';
+  if (document.getElementById('ap-power-backup')) document.getElementById('ap-power-backup').value = 'None';
 }
 
 // ── POND DETAIL ──
@@ -5109,7 +5133,9 @@ function openPondDetail(pid) {
   html += `<div class="card"><div class="card-body">
     <div class="row-item"><span class="row-label">Type</span><span class="row-value">${p.type || '—'}</span></div>
     <div class="row-item"><span class="row-label">Size</span><span class="row-value">${p.size || '—'} sqm</span></div>
-    <div class="row-item" style="border:none;"><span class="row-label">Capacity</span><span class="row-value">${(p.capacity || 0).toLocaleString()} fish</span></div>
+    <div class="row-item"><span class="row-label">Capacity</span><span class="row-value">${(p.capacity || 0).toLocaleString()} fish</span></div>
+    <div class="row-item"><span class="row-label">Water Source</span><span class="row-value">${p.waterSource || '—'}</span></div>
+    <div class="row-item" style="border:none;"><span class="row-label">Power Backup</span><span class="row-value">${p.powerBackup || '—'}</span></div>
   </div></div>`;
 
   if (b) {

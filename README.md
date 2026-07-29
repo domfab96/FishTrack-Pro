@@ -1,5 +1,5 @@
 # 🐟 FishTrackPro
-
+# del .git\index.lock
 **Nigeria's Smart Fish Farming Platform** — a full-stack farm management SaaS for catfish farmers, built and operated by [Doha Prime Ventures](https://dohaprimeventure.com).
 
 Live app: [fishtrackpro.netlify.app](https://fishtrackpro.netlify.app/fishtrackpro-p3.html)
@@ -48,7 +48,7 @@ FishTrackPro/
         ├── ai-chat.js              # Serverless function — proxies chat requests to Anthropic API
         ├── sensor-ingest.js        # Serverless function — receives ESP32 IoT sensor readings
         ├── create-payment-link.js  # Serverless function — generates a Paystack payment link for marketplace commission
-        └── monthly-review-cron.js  # SCHEDULED function — generates every Pro/Enterprise farmer's Monthly AI Review automatically (06:00 UTC, 1st of each month)
+        └── monthly-review-cron-background.js  # SCHEDULED BACKGROUND function — generates every Pro/Enterprise farmer's Monthly AI Review automatically (06:00 UTC, 1st of each month)
 ```
 
 ---
@@ -69,7 +69,7 @@ FishTrackPro/
 - **Admin AI Suggest** — reads farmer data and drafts a personalised message for admin review before sending
 - **Two-way Farmer↔Admin chat** — real-time inbox with unread badges
 - **Smart Alerts** — up to 3 prioritised alerts per day based on farm conditions
-- **Monthly AI Review** — full performance report for every Pro/Enterprise farmer, generated automatically at 06:00 UTC on the 1st of each month by the `monthly-review-cron.js` scheduled function — no longer dependent on the farmer opening the app. A client-side fallback still runs on login (days 1–5) in case the scheduled run ever fails, but checks Firestore first so it won't regenerate (and re-bill the Anthropic API for) a review that already exists.
+- **Monthly AI Review** — full performance report for every Pro/Enterprise farmer, generated automatically at 06:00 UTC on the 1st of each month by the `monthly-review-cron-background.js` scheduled background function — no longer dependent on the farmer opening the app. A client-side fallback still runs on login (days 1–5) in case the scheduled run ever fails, but checks Firestore first so it won't regenerate (and re-bill the Anthropic API for) a review that already exists.
 
 ### Marketplace (Phase 8) — `marketplace.html`
 A public, Jiji-style produce aggregation board, separate from the main farmer dashboard so anyone can browse without an account:
@@ -94,7 +94,7 @@ Set these in the Netlify dashboard (**Site settings → Environment variables**)
 ```
 ANTHROPIC_API_KEY=your_key_here          # ai-chat.js — Claude Haiku AI Assistant
 PAYSTACK_SECRET_KEY=sk_live_or_test      # create-payment-link.js — marketplace commission invoices
-FIREBASE_ADMIN_PASSWORD=your_password    # monthly-review-cron.js — signs in as ADMIN_EMAIL to read all farmers' data
+FIREBASE_ADMIN_PASSWORD=your_password    # monthly-review-cron-background.js — signs in as ADMIN_EMAIL to read all farmers' data
 ```
 
 `PAYSTACK_SECRET_KEY` is different from the `PAYSTACK_PUBLIC_KEY` hardcoded in `fishtrackpro-p3.html` — the public key is safe to expose client-side, the secret key must only ever live in Netlify's environment variables.
@@ -109,7 +109,7 @@ This project deploys to Netlify with **zero build step**.
 
 1. Push to GitHub
 2. Connect the repo in Netlify (or drag-and-drop the folder for manual deploy)
-3. Set the `ANTHROPIC_API_KEY` environment variable in Netlify site settings
+3. Set all three environment variables listed above in Netlify site settings
 4. Deploy
 
 > ⚠️ **Important:** All files — including the `netlify/functions/` folder — must be deployed together. Uploading the HTML file alone without the functions folder will break AI Chat, since the serverless function won't exist to proxy requests.
@@ -122,11 +122,16 @@ After changing the environment variable, trigger a redeploy for the change to ta
 
 - [x] Phase 1 — Auth, pond management, feeding log, weight tracker
 - [x] Phase 2 — Expenses, sales, harvest, inventory, analytics
-- [x] Phase 3 — Subscription billing (Paystack, test key)
-- [x] Phase 4 — AI Chat, Smart Alerts, Monthly AI Review, PWA conversion
-- [ ] Paystack live key (pending business verification)
-- [ ] Phase 5 — Farmer community (posts, comments, direct messages)
-- [ ] Phase 6 — Push notifications, admin dashboard refinement
+- [x] Phase 3 — Subscription billing (Paystack, live key active)
+- [x] Phase 4 — AI Chat, Smart Alerts, Monthly AI Review (now on a proper scheduled trigger, not just app-open), PWA conversion
+- [x] IoT Sensor Dashboard, staff accounts, 4-language selector
+- [x] Phase 8 — Harvest Listing / Produce Aggregation marketplace (`marketplace.html`) — public browsing, light-KYC buyers, Paystack commission invoicing
+- [x] Phase 5, Stage 1 — Credit Scoring Engine: Water Source + Power Backup fields added to pond setup (unlocks the future irrScore calculation)
+- [ ] Phase 5, Stage 2 — Farm Credit Profile screen (auto-calculated credit score, recommended loan ceiling)
+- [ ] Phase 5, Stage 3 — Lender API endpoint (requires NITDA registration, Mono/Okra Open Banking)
+- [ ] Phase 6 — Bank Statement Reconciliation, Financial Discipline Score
+- [ ] Phase 7 — Financial Forecasting Dashboard (12-month cash flow projection)
+- [ ] Phase 9 — Cooperative Group Account (multi-farm admin view, Enterprise tier)
 
 ---
 

@@ -1,7 +1,13 @@
-// Netlify SCHEDULED function — generates the Monthly AI Review for every
-// Pro/Enterprise farmer automatically, on a cron schedule (see netlify.toml),
-// instead of only firing when a farmer happens to open the app in the first
-// few days of the month.
+// Netlify SCHEDULED BACKGROUND function — generates the Monthly AI Review for
+// every Pro/Enterprise farmer automatically, on a cron schedule (see
+// netlify.toml), instead of only firing when a farmer happens to open the app
+// in the first few days of the month. The "-background" filename suffix is
+// required by Netlify to get the extended (~15 min) execution budget instead
+// of the ~10-30s limit on regular functions — this loops over every farmer,
+// and each one involves several Firestore round-trips plus an AI-generated
+// review, which is too slow for a normal function. Because it's a background
+// function, invoking its URL directly returns an immediate 202 with no body —
+// check the Netlify Functions logs afterwards to see the run's actual result.
 //
 // No new SDKs or service-account keys are introduced — this reuses the same
 // admin login (ADMIN_EMAIL) that already signs into the in-app Admin Panel,

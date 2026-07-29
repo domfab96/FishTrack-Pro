@@ -2,8 +2,11 @@
   directory = "netlify/functions"
 
 # Monthly AI Review — runs automatically at 06:00 UTC on the 1st of every
-# month, independent of any farmer logging in. See monthly-review-cron.js.
-[functions."monthly-review-cron"]
+# month, independent of any farmer logging in. See monthly-review-cron-background.js.
+# The "-background" suffix makes this a Netlify Background Function (up to
+# 15 min execution) instead of the ~10-30s limit on regular functions — needed
+# because it loops over every farmer, generating an AI review for each.
+[functions."monthly-review-cron-background"]
   schedule = "0 6 1 * *"
 
 [[headers]]
