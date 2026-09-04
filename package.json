@@ -1,0 +1,9 @@
+{
+  "name": "fishtrackpro-functions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dependencies for FishTrackPro's Netlify serverless functions (netlify/functions/*.js).",
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
